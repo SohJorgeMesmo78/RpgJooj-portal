@@ -1,0 +1,87 @@
+<div class="history-page-container animate-fade-in" *ngIf="character; else loading">
+  <!-- Top WIP Banner -->
+  <div class="screen-wip-banner">
+    <span class="wip-badge-mini">WIP</span> Crônica em Desenvolvimento - Capítulos extraídos do banco de dados PostgreSQL.
+  </div>
+
+  <div class="navigation-header">
+    <a [routerLink]="['/', character.id]" class="back-link">
+      <span class="arrow">➔</span> Voltar para a Ficha
+    </a>
+  </div>
+
+  <!-- HAS CHAPTERS: PARCHMENT LORE SCROLL -->
+  <div *ngIf="character.chapters && character.chapters.length > 0; else noHistory" class="lore-scroll-wrapper">
+    <!-- Chapter Steps Navigation -->
+    <div class="chapter-navigation-steps">
+      <span class="steps-title">Capítulos:</span>
+      <div class="steps-row">
+        <button 
+          *ngFor="let chap of character.chapters; let i = index" 
+          [class.active]="i === activeChapterIndex"
+          (click)="selectChapter(i)"
+          class="step-btn"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Scroll Roll/Ancient Parchment -->
+    <div class="ancient-scroll">
+      <!-- Top Scroll Roll Handle -->
+      <div class="scroll-roller scroll-top">
+        <div class="roller-wood"></div>
+        <div class="roller-knob-left"></div>
+        <div class="roller-knob-right"></div>
+      </div>
+
+      <!-- Scroll Paper Body -->
+      <div class="scroll-paper">
+        <div class="paper-texture"></div>
+        <div class="parchment-content" *ngIf="activeChapter">
+          <span class="chapter-number">Capítulo {{ activeChapter.capitulo }}</span>
+          <h1 class="chapter-title">{{ activeChapter.tituloCapitulo || 'História de ' + character.name }}</h1>
+          <div class="ornament">⚜️ ✦ ⚜️</div>
+          <div class="chapter-text">
+            <p>{{ activeChapter.texto }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Scroll Roll Handle -->
+      <div class="scroll-roller scroll-bottom">
+        <div class="roller-wood"></div>
+        <div class="roller-knob-left"></div>
+        <div class="roller-knob-right"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NO CHAPTERS: WIP UNDER CONSTRUCTION PAGE -->
+  <ng-template #noHistory>
+    <div class="wip-scroll-container medieval-card">
+      <div class="wip-badge">WIP</div>
+      <div class="wip-shield">🛡️</div>
+      <h1>História em Construção</h1>
+      <div class="card-divider"></div>
+      <p class="wip-text">
+        As lendas e feitos de <strong>{{ character.name }}</strong> ainda não foram traduzidos para pergaminhos por nossos escribas.
+      </p>
+      <div class="card-wip-notice">
+        <span class="wip-badge-mini">Em construção</span> Aguardando capítulos da história no banco de dados.
+      </div>
+      <a [routerLink]="['/', character.id]" class="back-link">
+        <span class="arrow">➔</span> Voltar para a Ficha
+      </a>
+    </div>
+  </ng-template>
+</div>
+
+<!-- Loading Template -->
+<ng-template #loading>
+  <div class="loading-container medieval-card">
+    <div class="spinner">🌀</div>
+    <p>Invocando crônicas do servidor...</p>
+  </div>
+</ng-template>

@@ -1,0 +1,201 @@
+<div class="detail-container animate-fade-in" *ngIf="character; else notFound">
+  <!-- Top WIP Banner -->
+  <div class="screen-wip-banner">
+    <span class="wip-badge-mini">WIP</span> Visualização Parcial do Personagem - Algumas seções em desenvolvimento.
+  </div>
+
+  <div class="navigation-header">
+    <a [routerLink]="['/']" class="back-link">
+      <span class="arrow">➔</span> Voltar para a Taverna
+    </a>
+  </div>
+
+  <!-- Character Main Header -->
+  <header class="character-header medieval-card">
+    <div class="wip-badge">WIP</div>
+    
+    <div class="header-content">
+      <div class="avatar-frame-large">
+        <img [src]="character.avatarUrl" [alt]="character.name" class="character-avatar-large" />
+      </div>
+      
+      <div class="character-title-info">
+        <h1 class="character-name-large">{{ character.name }}</h1>
+        <div class="character-subtitle-row">
+          <span class="level-badge">Nível {{ character.sheet.level }}</span>
+          <span class="alignment-badge">{{ character.sheet.alignment }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Section: 3 Big Cards -->
+  <section class="main-sections-grid">
+    
+    <!-- HISTÓRIA CARD -->
+    <div class="medieval-card medieval-card-hover big-card history-card" [routerLink]="['/', character.id, 'historia']">
+      <div class="wip-badge">WIP</div>
+      <h2 class="card-title">📖 História</h2>
+      <div class="card-divider"></div>
+      <div class="card-content">
+        <p>{{ character.history | slice:0:630 }}{{ character.history.length > 230 ? '...' : '' }}</p>
+      </div>
+      <div class="card-wip-notice">
+        <span class="wip-badge-mini">Em construção</span> Biografia adicional aguardando histórico completo.
+      </div>
+    </div>
+
+    <!-- FICHA CARD -->
+    <div class="medieval-card medieval-card-hover big-card sheet-card" [routerLink]="['/', character.id, 'ficha']">
+      <div class="wip-badge">WIP</div>
+      <h2 class="card-title">⚔️ Ficha de Atributos</h2>
+      <div class="card-divider"></div>
+      <div class="card-content">
+        <!-- Stats summary row -->
+        <div class="combat-stats-row">
+          <div class="combat-stat">
+            <span class="stat-icon">🛡️</span>
+            <span class="stat-value">{{ character.sheet.ac || '-' }}</span>
+            <span class="stat-label">CA (Classe de Armadura)</span>
+          </div>
+          <div class="combat-stat">
+            <span class="stat-icon">❤️</span>
+            <span class="stat-value">{{ character.sheet.hp || '-' }}</span>
+            <span class="stat-label">Pontos de Vida</span>
+          </div>
+          <div class="combat-stat">
+            <span class="stat-icon">✨</span>
+            <span class="stat-value">{{ character.sheet.experience ? character.sheet.experience + ' XP' : '-' }}</span>
+            <span class="stat-label">Pontos de Experiência</span>
+          </div>
+        </div>
+
+        <!-- Attributes Grid -->
+        <div class="attributes-grid">
+          <div class="attribute-box">
+            <span class="attr-name">FOR</span>
+            <span class="attr-value">{{ character.sheet.attributes.strength || '-' }}</span>
+            <span class="attr-mod">{{ getModifier(character.sheet.attributes.strength) }}</span>
+          </div>
+          <div class="attribute-box">
+            <span class="attr-name">DES</span>
+            <span class="attr-value">{{ character.sheet.attributes.dexterity || '-' }}</span>
+            <span class="attr-mod">{{ getModifier(character.sheet.attributes.dexterity) }}</span>
+          </div>
+          <div class="attribute-box">
+            <span class="attr-name">CON</span>
+            <span class="attr-value">{{ character.sheet.attributes.constitution || '-' }}</span>
+            <span class="attr-mod">{{ getModifier(character.sheet.attributes.constitution) }}</span>
+          </div>
+          <div class="attribute-box">
+            <span class="attr-name">INT</span>
+            <span class="attr-value">{{ character.sheet.attributes.intelligence || '-' }}</span>
+            <span class="attr-mod">{{ getModifier(character.sheet.attributes.intelligence) }}</span>
+          </div>
+          <div class="attribute-box">
+            <span class="attr-name">SAB</span>
+            <span class="attr-value">{{ character.sheet.attributes.wisdom || '-' }}</span>
+            <span class="attr-mod">{{ getModifier(character.sheet.attributes.wisdom) }}</span>
+          </div>
+          <div class="attribute-box">
+            <span class="attr-name">CAR</span>
+            <span class="attr-value">{{ character.sheet.attributes.charisma || '-' }}</span>
+            <span class="attr-mod">{{ getModifier(character.sheet.attributes.charisma) }}</span>
+          </div>
+        </div>
+
+        <!-- Saves and Skills -->
+        <div class="additional-sheets">
+          <div class="sub-list">
+            <h4>Testes de Resistência</h4>
+            <ul *ngIf="character.sheet.savingThrows && character.sheet.savingThrows.length > 0; else noSaves">
+              <li *ngFor="let save of character.sheet.savingThrows">{{ save }}</li>
+            </ul>
+            <ng-template #noSaves>
+              <p class="empty-list-notice">Nenhum teste registrado.</p>
+            </ng-template>
+          </div>
+          <div class="sub-list">
+            <h4>Perícias Treinadas</h4>
+            <ul *ngIf="character.sheet.skills && character.sheet.skills.length > 0; else noSkills">
+              <li *ngFor="let skill of character.sheet.skills">{{ skill }}</li>
+            </ul>
+            <ng-template #noSkills>
+              <p class="empty-list-notice">Nenhuma perícia registrada.</p>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+      <div class="card-wip-notice">
+        <span class="wip-badge-mini">Em construção</span> Modificadores e inventário pendentes.
+      </div>
+    </div>
+
+    <!-- LAÇOS CARD -->
+    <div class="medieval-card medieval-card-hover big-card bonds-card" [routerLink]="['/', character.id, 'lacos']">
+      <div class="wip-badge">WIP</div>
+      <h2 class="card-title">🔗 Laços e Intriga</h2>
+      <div class="card-divider"></div>
+      <div class="card-content">
+        <ul class="bonds-list" *ngIf="character.bonds && character.bonds.length > 0; else noBonds">
+          <li *ngFor="let bond of character.bonds">
+            <span class="bond-icon">🔸</span>
+            <span class="bond-text">{{ bond }}</span>
+          </li>
+        </ul>
+        <ng-template #noBonds>
+          <div class="empty-bonds-container">
+            <p class="empty-list-notice">Nenhum laço ou intriga registrado para este personagem ainda.</p>
+          </div>
+        </ng-template>
+      </div>
+      <div class="card-wip-notice">
+        <span class="wip-badge-mini">Em construção</span> Conexões com o cenário de campanha pendentes.
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Section: 2 Smaller Subcards -->
+  <section class="subcards-section-grid">
+    <!-- SUB-CARD: RAÇA -->
+    <div class="medieval-card medieval-card-hover sub-card race-subcard" [routerLink]="['/', character.id, 'raca']">
+      <div class="wip-badge">WIP</div>
+      <h3 class="subcard-title">🧬 Raça</h3>
+      <div class="subcard-divider"></div>
+      <div class="subcard-content">
+        <div class="subcard-main-val">{{ character.race }}</div>
+        <p class="subcard-description">As habilidades raciais, bônus de atributos e características únicas estão sob desenvolvimento técnico.</p>
+      </div>
+      <div class="subcard-wip-notice">
+        <span class="wip-badge-mini">Em construção</span> Detalhes da Raça
+      </div>
+    </div>
+
+    <!-- SUB-CARD: CLASSE E SUBCLASSE -->
+    <div class="medieval-card medieval-card-hover sub-card class-subcard" [routerLink]="['/', character.id, 'classe']">
+      <div class="wip-badge">WIP</div>
+      <h3 class="subcard-title">🛡️ Classe / Subclasse</h3>
+      <div class="subcard-divider"></div>
+      <div class="subcard-content">
+        <div class="subcard-main-val">{{ character.classAndSubclass }}</div>
+        <p class="subcard-description">As magias preparadas, habilidades de combate e progressão de nível estão sendo estruturadas.</p>
+      </div>
+      <div class="subcard-wip-notice">
+        <span class="wip-badge-mini">Em construção</span> Detalhes da Classe
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Character Not Found template -->
+<ng-template #notFound>
+  <div class="not-found-container medieval-card animate-fade-in">
+    <div class="wip-badge">Erro</div>
+    <h1>Personagem Perdido</h1>
+    <div class="card-divider"></div>
+    <p>O aventureiro que você procura não foi encontrado nas tavernas deste reino.</p>
+    <a [routerLink]="['/']" class="back-link">
+      <span class="arrow">➔</span> Voltar para a Taverna
+    </a>
+  </div>
+</ng-template>

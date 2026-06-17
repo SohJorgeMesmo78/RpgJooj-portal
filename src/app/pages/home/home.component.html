@@ -1,0 +1,56 @@
+<div class="home-container animate-fade-in">
+  <!-- Top Screen WIP Banner -->
+  <div class="screen-wip-banner">
+    <span class="wip-badge-mini">WIP</span> Projeto em Desenvolvimento - Front-end com Dados Mocado
+  </div>
+
+  <header class="home-header">
+    <div class="logo-wrapper">
+      <div class="shield-logo">🛡️</div>
+    </div>
+    <h1 class="glowing-title">TAVERNA DOS CAMPEÕES</h1>
+    <p class="subtitle">Gerencie e explore os seus heróis mais valentes do universo de D&D</p>
+    <div class="header-divider"></div>
+  </header>
+
+  <main class="character-grid" *ngIf="characters$ | async as characters">
+    <div 
+      *ngFor="let char of characters" 
+      [routerLink]="['/', char.id]" 
+      class="medieval-card medieval-card-hover character-card"
+    >
+      <!-- Visual Banner "Em construção" no card -->
+      <div class="wip-badge">WIP</div>
+
+      <div class="card-avatar-wrapper">
+        <div class="avatar-frame">
+          <img [src]="char.avatarUrl" [alt]="char.name" class="character-avatar" />
+        </div>
+      </div>
+
+      <div class="card-info">
+        <h2 class="character-name">{{ char.name }}</h2>
+        
+        <div class="character-meta">
+          <div class="meta-item">
+            <span class="label">Raça:</span>
+            <span class="value">{{ char.race }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Classe:</span>
+            <span class="value">{{ char.classAndSubclass }}</span>
+          </div>
+        </div>
+
+        <div class="card-wip-indicator">
+          <span class="wip-badge-mini">Em construção</span> Ficha e laços parciais
+        </div>
+        
+        <div class="card-footer-action">
+          <span>Abrir Pergaminho</span>
+          <span class="arrow">➔</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
