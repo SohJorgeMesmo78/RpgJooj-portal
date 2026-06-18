@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { CharacterService, Character, PericiaInfo } from '../../services/character.service';
+import { CharacterService, Character, PericiaInfo, AcaoInfo } from '../../services/character.service';
 
 export interface PericiaView {
   id: number;
@@ -11,6 +11,7 @@ export interface PericiaView {
   modificadorAtributo: string;
   proficiente: boolean;
   maestria: boolean;
+  origem?: string;
 }
 
 @Component({
@@ -73,11 +74,13 @@ export interface PericiaView {
         </div>
 
         <!-- Deslocamento -->
-        <div class="combat-stat-box speed-box">
+        <div class="combat-stat-box speed-box clickable-speed-box" (click)="toggleSpeedUnit()" title="Clique para alternar entre metros (m) e feet (ft)" style="cursor: pointer;">
           <div class="stat-circle font-medieval">
-            {{ getSpeed(character) }}m
+            {{ getSpeedDisplay() }}
           </div>
-          <span class="stat-label font-medieval">Deslocamento</span>
+          <span class="stat-label font-medieval">
+            Deslocamento <span class="unit-toggle-label">({{ exibirEmFeet ? 'ft' : 'm' }})</span>
+          </span>
         </div>
 
         <!-- Bônus de Proficiência -->
@@ -111,106 +114,295 @@ export interface PericiaView {
         </div>
       </section>
 
-      <!-- Atributos & Perícias -->
-      <div class="attributes-skills-grid">
+      <!-- Menu de Abas Temático -->
+      <div class="tabs-navigation font-medieval">
+        <button class="tab-button" [class.active]="activeTab === 'ficha'" (click)="activeTab = 'ficha'">
+          Ficha
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'actions'" (click)="activeTab = 'actions'">
+          Ações
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'traits'" (click)="activeTab = 'traits'">
+          Traços Raciais
+        </button>
+      </div>
+
+      <!-- Aba 1: Ficha -->
+      <div class="attributes-skills-grid" *ngIf="activeTab === 'ficha'">
         
-        <!-- Lado Esquerdo: Atributos Base -->
-        <section class="attributes-section">
-          <h2 class="section-title font-medieval">Atributos</h2>
-          <div class="attributes-list">
-            
-            <!-- Força -->
-            <div class="attribute-card">
-              <span class="attr-name">FOR</span>
-              <span class="attr-modifier font-medieval">
-                {{ formatModifier(getModifier(character.sheet.attributes.strength)) }}
-              </span>
-              <div class="attr-value font-medieval">{{ character.sheet.attributes.strength }}</div>
-            </div>
-
-            <!-- Destreza -->
-            <div class="attribute-card">
-              <span class="attr-name">DES</span>
-              <span class="attr-modifier font-medieval">
-                {{ formatModifier(getModifier(character.sheet.attributes.dexterity)) }}
-              </span>
-              <div class="attr-value font-medieval">{{ character.sheet.attributes.dexterity }}</div>
-            </div>
-
-            <!-- Constituição -->
-            <div class="attribute-card">
-              <span class="attr-name">CON</span>
-              <span class="attr-modifier font-medieval">
-                {{ formatModifier(getModifier(character.sheet.attributes.constitution)) }}
-              </span>
-              <div class="attr-value font-medieval">{{ character.sheet.attributes.constitution }}</div>
-            </div>
-
-            <!-- Inteligência -->
-            <div class="attribute-card">
-              <span class="attr-name">INT</span>
-              <span class="attr-modifier font-medieval">
-                {{ formatModifier(getModifier(character.sheet.attributes.intelligence)) }}
-              </span>
-              <div class="attr-value font-medieval">{{ character.sheet.attributes.intelligence }}</div>
-            </div>
-
-            <!-- Sabedoria -->
-            <div class="attribute-card">
-              <span class="attr-name">SAB</span>
-              <span class="attr-modifier font-medieval">
-                {{ formatModifier(getModifier(character.sheet.attributes.wisdom)) }}
-              </span>
-              <div class="attr-value font-medieval">{{ character.sheet.attributes.wisdom }}</div>
-            </div>
-
-            <!-- Carisma -->
-            <div class="attribute-card carisma-highlight">
-              <span class="attr-name">CAR</span>
-              <span class="attr-modifier font-medieval">
-                {{ formatModifier(getModifier(character.sheet.attributes.charisma)) }}
-              </span>
-              <div class="attr-value font-medieval">{{ character.sheet.attributes.charisma }}</div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- Lado Direito: Perícias (Skills) -->
-        <section class="skills-section">
-          <div class="skills-section-header">
-            <h2 class="section-title font-medieval">Perícias</h2>
-            <span class="skills-info-hint">Clique na bolinha única para ciclar: Vazio ➔ Proficiente ➔ Maestria</span>
-          </div>
-          <div class="skills-card-container medieval-border">
-            <div class="skills-list">
-              <div class="skill-row" *ngFor="let skill of pericias">
-                
-                <!-- Bolinha Única de 3 Estados (Sem, P ou M) -->
-                <div class="skill-checks-single">
-                  <button 
-                    [class.proficient]="skill.proficiente && !skill.maestria" 
-                    [class.maestria]="skill.proficiente && skill.maestria" 
-                    (click)="cycleProficiency(skill)" 
-                    class="single-check-btn" 
-                    [title]="getSkillTitle(skill)">
-                  </button>
-                </div>
-
-                <!-- Modificador Final da Perícia -->
-                <span class="skill-modifier font-medieval" [class.highlighted]="skill.proficiente">
-                  {{ formatModifier(getSkillModifier(skill)) }}
+        <!-- Lado Esquerdo: Atributos & Perícias -->
+        <div class="left-ficha-column">
+          <section class="attributes-section">
+            <h2 class="section-title font-medieval">Atributos</h2>
+            <div class="attributes-list">
+              
+              <!-- Força -->
+              <div class="attribute-card">
+                <span class="attr-name">FOR</span>
+                <span class="attr-modifier font-medieval">
+                  {{ formatModifier(getModifier(character.sheet.attributes.strength)) }}
                 </span>
+                <div class="attr-value font-medieval">{{ character.sheet.attributes.strength }}</div>
+              </div>
 
-                <!-- Nome e Atributo -->
-                <span class="skill-name">{{ skill.nome }}</span>
-                <span class="skill-attr">({{ skill.modificadorAtributo.substring(0, 3) }})</span>
+              <!-- Destreza -->
+              <div class="attribute-card">
+                <span class="attr-name">DES</span>
+                <span class="attr-modifier font-medieval">
+                  {{ formatModifier(getModifier(character.sheet.attributes.dexterity)) }}
+                </span>
+                <div class="attr-value font-medieval">{{ character.sheet.attributes.dexterity }}</div>
+              </div>
 
+              <!-- Constituição -->
+              <div class="attribute-card">
+                <span class="attr-name">CON</span>
+                <span class="attr-modifier font-medieval">
+                  {{ formatModifier(getModifier(character.sheet.attributes.constitution)) }}
+                </span>
+                <div class="attr-value font-medieval">{{ character.sheet.attributes.constitution }}</div>
+              </div>
+
+              <!-- Inteligência -->
+              <div class="attribute-card">
+                <span class="attr-name">INT</span>
+                <span class="attr-modifier font-medieval">
+                  {{ formatModifier(getModifier(character.sheet.attributes.intelligence)) }}
+                </span>
+                <div class="attr-value font-medieval">{{ character.sheet.attributes.intelligence }}</div>
+              </div>
+
+              <!-- Sabedoria -->
+              <div class="attribute-card">
+                <span class="attr-name">SAB</span>
+                <span class="attr-modifier font-medieval">
+                  {{ formatModifier(getModifier(character.sheet.attributes.wisdom)) }}
+                </span>
+                <div class="attr-value font-medieval">{{ character.sheet.attributes.wisdom }}</div>
+              </div>
+
+              <!-- Carisma -->
+              <div class="attribute-card carisma-highlight">
+                <span class="attr-name">CAR</span>
+                <span class="attr-modifier font-medieval">
+                  {{ formatModifier(getModifier(character.sheet.attributes.charisma)) }}
+                </span>
+                <div class="attr-value font-medieval">{{ character.sheet.attributes.charisma }}</div>
+              </div>
+
+            </div>
+          </section>
+
+          <!-- Perícias -->
+          <section class="skills-section" style="margin-top: 24px;">
+            <div class="skills-section-header">
+              <h2 class="section-title font-medieval">Perícias</h2>
+              <span class="skills-info-hint">Proficiências e modificadores vindos do banco de dados</span>
+            </div>
+            <div class="skills-card-container medieval-border">
+              <div class="skills-list">
+                <div class="skill-row" *ngFor="let skill of pericias" [title]="getSkillTooltip(skill)">
+                  
+                  <!-- Bolinha Única de 3 Estados (Sem, P ou M) -->
+                  <div class="skill-checks-single">
+                    <button 
+                      [class.proficient]="skill.proficiente && !skill.maestria" 
+                      [class.maestria]="skill.proficiente && skill.maestria" 
+                      class="single-check-btn">
+                    </button>
+                  </div>
+
+                  <!-- Modificador Final da Perícia -->
+                  <span class="skill-modifier font-medieval" [class.highlighted]="skill.proficiente">
+                    {{ formatModifier(getSkillModifier(skill)) }}
+                  </span>
+
+                  <!-- Nome e Atributo -->
+                  <span class="skill-name">{{ skill.nome }}</span>
+                  <span class="skill-attr">({{ skill.modificadorAtributo.substring(0, 3) }})</span>
+
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Lado Direito: Salvaguardas & Proficiências -->
+        <div class="right-ficha-column">
+          <!-- Salvaguardas -->
+          <section class="saving-throws-section" *ngIf="character.salvaguardas && character.salvaguardas.length > 0">
+            <h2 class="section-title font-medieval">Salvaguardas</h2>
+            <div class="saving-throws-card medieval-border">
+              <div class="saving-throws-list">
+                <div class="saving-throw-row" *ngFor="let save of character.salvaguardas">
+                  <span class="save-indicator" [class.proficient]="save.isProficiente"></span>
+                  <span class="save-value font-medieval">{{ formatModifier(save.valor) }}</span>
+                  <span class="save-name">{{ save.atributo }}</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Proficiências Gerais -->
+          <section class="proficiencies-section" style="margin-top: 24px;" *ngIf="character.proficiencias && character.proficiencias.length > 0">
+            <h2 class="section-title font-medieval">Proficiências</h2>
+            <div class="proficiencies-card medieval-border">
+              <div class="proficiencies-list">
+                <div class="proficiency-group" *ngFor="let group of getGroupedProficiencies()">
+                  <span class="prof-group-title font-medieval">{{ group.tipo }}:</span>
+                  <span class="prof-group-value" *ngFor="let item of group.itens; let last = last" [title]="'Origem: ' + item.origem">
+                    {{ item.nome }}{{ last ? '' : ', ' }}
+                  </span>
+                </div>
+                <!-- Idiomas -->
+                <div class="proficiency-group" *ngIf="character.idiomas && character.idiomas.length > 0">
+                  <span class="prof-group-title font-medieval">Idiomas:</span>
+                  <span class="prof-group-value">
+                    {{ character.idiomas.join(', ') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </div>
+
+      <!-- Aba 2: Ações -->
+      <div class="actions-panel animate-fade-in" *ngIf="activeTab === 'actions'">
+        <div class="actions-sections-container">
+          <!-- Ações de Combate -->
+          <div class="actions-category-section">
+            <h2 class="section-title font-medieval">Ações</h2>
+            <div class="actions-list-container">
+              <div class="action-card-item medieval-border" *ngFor="let acao of getActionsByType('Ação')" (click)="openActionModal(acao)" title="Clique para ver a descrição completa">
+                <div class="action-card-header">
+                  <h3 class="action-name font-medieval">{{ acao.nome }}</h3>
+                  <span class="action-badge font-medieval">{{ acao.tipoAcao }}</span>
+                </div>
+                <div class="action-card-body">
+                  <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
+                  <div class="action-stat"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+                  <div class="action-stat"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+                </div>
+              </div>
+              <div class="no-actions-msg" *ngIf="getActionsByType('Ação').length === 0">
+                Nenhuma Ação registrada.
               </div>
             </div>
           </div>
-        </section>
 
+          <!-- Ações Bônus -->
+          <div class="actions-category-section">
+            <h2 class="section-title font-medieval">Ações Bônus</h2>
+            <div class="actions-list-container">
+              <div class="action-card-item medieval-border" *ngFor="let acao of getActionsByType('Ação Bônus')" (click)="openActionModal(acao)" title="Clique para ver a descrição completa">
+                <div class="action-card-header">
+                  <h3 class="action-name font-medieval">{{ acao.nome }}</h3>
+                  <span class="action-badge font-medieval">{{ acao.tipoAcao }}</span>
+                </div>
+                <div class="action-card-body">
+                  <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
+                  <div class="action-stat"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+                  <div class="action-stat"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+                </div>
+              </div>
+              <div class="no-actions-msg" *ngIf="getActionsByType('Ação Bônus').length === 0">
+                Nenhuma Ação Bônus registrada.
+              </div>
+            </div>
+          </div>
+
+          <!-- Reações -->
+          <div class="actions-category-section">
+            <h2 class="section-title font-medieval">Reações</h2>
+            <div class="actions-list-container">
+              <div class="action-card-item medieval-border" *ngFor="let acao of getActionsByType('Reação')" (click)="openActionModal(acao)" title="Clique para ver a descrição completa">
+                <div class="action-card-header">
+                  <h3 class="action-name font-medieval">{{ acao.nome }}</h3>
+                  <span class="action-badge font-medieval">{{ acao.tipoAcao }}</span>
+                </div>
+                <div class="action-card-body">
+                  <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
+                  <div class="action-stat"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+                  <div class="action-stat"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+                </div>
+              </div>
+              <div class="no-actions-msg" *ngIf="getActionsByType('Reação').length === 0">
+                Nenhuma Reação registrada.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba 3: Traços Raciais -->
+      <div class="traits-panel animate-fade-in" *ngIf="activeTab === 'traits'">
+        <!-- Visão Geral da Raça -->
+        <div class="race-overview medieval-border" *ngIf="character.racaInfo">
+          <div class="race-header">
+            <h2 class="race-title font-medieval">{{ character.racaInfo.nome }}</h2>
+            <div class="race-meta">
+              <span class="meta-badge"><strong>Tipo:</strong> {{ character.racaInfo.tipoCriatura }}</span>
+              <span class="meta-badge"><strong>Tamanho:</strong> {{ character.racaInfo.tamanho }}</span>
+              <span class="meta-badge"><strong>Deslocamento Base:</strong> {{ getSpeedDisplay() }}</span>
+            </div>
+          </div>
+          <p class="race-description">{{ character.racaInfo.descricao }}</p>
+        </div>
+
+        <!-- Lista de Traços Raciais -->
+        <div class="traits-list-container">
+          <h3 class="section-title font-medieval">Habilidades de Raça</h3>
+          
+          <div class="traits-grid">
+            <div class="trait-card" *ngFor="let trait of character.tracosRaciais" (click)="openTraitModal(trait)" title="Clique para ver a descrição completa">
+              <div class="trait-header">
+                <span class="trait-icon">✦</span>
+                <h4 class="trait-name font-medieval">{{ trait.nome }}</h4>
+              </div>
+              <p class="trait-description">{{ trait.descricao }}</p>
+            </div>
+            
+            <div class="no-traits-card medieval-border" *ngIf="!character.tracosRaciais || character.tracosRaciais.length === 0">
+              <p>Nenhuma habilidade ou traço racial registrado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de Detalhes do Traço Racial -->
+      <div class="trait-modal-overlay" *ngIf="selectedTrait" (click)="closeTraitModal()">
+        <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+          <button class="modal-close-btn" (click)="closeTraitModal()">✕</button>
+          <div class="modal-header">
+            <span class="trait-icon">✦</span>
+            <h3 class="modal-title font-medieval">{{ selectedTrait.nome }}</h3>
+          </div>
+          <div class="modal-body">
+            <p class="modal-description">{{ selectedTrait.descricao }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de Detalhes da Ação -->
+      <div class="trait-modal-overlay" *ngIf="selectedAction" (click)="closeActionModal()">
+        <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+          <button class="modal-close-btn" (click)="closeActionModal()">✕</button>
+          <div class="modal-header">
+            <span class="trait-icon">⚔️</span>
+            <h3 class="modal-title font-medieval">{{ selectedAction.nome }}</h3>
+          </div>
+          <div class="modal-body">
+            <div class="action-modal-stats-grid">
+              <div class="action-stat-badge"><span class="badge-lbl">Tipo:</span> {{ selectedAction.tipoAcao }}</div>
+              <div class="action-stat-badge"><span class="badge-lbl">Alcance:</span> {{ selectedAction.alcance }}</div>
+              <div class="action-stat-badge"><span class="badge-lbl">Acerto:</span> {{ selectedAction.bonusAcerto }}</div>
+              <div class="action-stat-badge"><span class="badge-lbl">Dano:</span> {{ selectedAction.dano }} ({{ selectedAction.tipoDano }})</div>
+            </div>
+            <p class="modal-description" style="margin-top: 20px;">{{ selectedAction.descricao || 'Nenhuma descrição detalhada.' }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -570,7 +762,7 @@ export interface PericiaView {
     /* Layout Atributos e Perícias */
     .attributes-skills-grid {
       display: grid;
-      grid-template-columns: 1fr 2fr;
+      grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
 
@@ -719,23 +911,19 @@ export interface PericiaView {
       margin-right: 12px;
     }
 
-    /* Bolinha de 3 Estados */
+    /* Bolinha de 3 Estados - Estática */
     .single-check-btn {
       width: 18px;
       height: 18px;
       border-radius: 50%;
       border: 2px solid rgba(255, 170, 0, 0.4);
       background: transparent;
-      cursor: pointer;
+      cursor: default;
       padding: 0;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       box-shadow: inset 0 0 4px rgba(0,0,0,0.6);
-    }
-
-    .single-check-btn:hover {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 6px rgba(255, 170, 0, 0.3);
+      pointer-events: none;
     }
 
     .single-check-btn.proficient {
@@ -825,6 +1013,449 @@ export interface PericiaView {
       border: 1px solid rgba(255, 170, 0, 0.05);
       pointer-events: none;
     }
+
+    /* Menu de Abas Medieval */
+    .tabs-navigation {
+      display: flex;
+      gap: 16px;
+      border-bottom: 2px solid rgba(255, 170, 0, 0.15);
+      padding-bottom: 2px;
+      margin-top: 10px;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 1.2rem;
+      padding: 10px 20px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s ease;
+      letter-spacing: 1px;
+      font-family: var(--font-medieval);
+    }
+
+    .tab-button:hover {
+      color: var(--color-primary);
+      text-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+    }
+
+    .tab-button.active {
+      color: var(--color-primary);
+      text-shadow: 0 0 10px rgba(255, 170, 0, 0.6);
+      font-weight: bold;
+    }
+
+    .tab-button.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--color-primary);
+      box-shadow: 0 0 10px var(--color-primary);
+      border-radius: 2px;
+    }
+
+    /* Painel de Traços Raciais */
+    .traits-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 10px;
+    }
+
+    .race-overview {
+      background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+      padding: 24px;
+      border: 1px solid rgba(255, 170, 0, 0.15);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .race-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255, 170, 0, 0.15);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .race-title {
+      font-size: 2rem;
+      color: var(--color-primary);
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .race-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-badge {
+      background: rgba(255, 170, 0, 0.08);
+      border: 1px solid rgba(255, 170, 0, 0.2);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .race-description {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--color-text-muted);
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    .traits-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .traits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .trait-card {
+      background: rgba(24, 24, 28, 0.95);
+      border: 1px solid rgba(255, 170, 0, 0.12);
+      border-radius: var(--border-radius);
+      padding: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 500px; /* Altura vertical predeterminada */
+      cursor: pointer;
+    }
+
+    .trait-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 6px 15px rgba(255, 170, 0, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .trait-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 170, 0, 0.08);
+      padding-bottom: 8px;
+    }
+
+    .trait-icon {
+      color: var(--color-primary);
+      font-size: 1.15rem;
+    }
+
+    .trait-name {
+      font-size: 1.25rem;
+      color: var(--color-primary);
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+
+    .trait-description {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--color-text-muted);
+      margin: 0;
+      white-space: pre-line;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 16; /* Trunca após cerca de 16 linhas */
+      -webkit-box-orient: vertical;
+      text-overflow: ellipsis;
+    }
+
+    .no-traits-card {
+      grid-column: 1 / -1;
+      padding: 24px;
+      text-align: center;
+      color: var(--color-text-muted);
+      background: rgba(24, 24, 28, 0.5);
+    }
+
+    .unit-toggle-label {
+      font-size: 0.7rem;
+      color: var(--color-primary);
+      opacity: 0.85;
+      margin-left: 2px;
+      font-weight: bold;
+    }
+
+    .clickable-speed-box:hover .stat-circle {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 10px rgba(255, 170, 0, 0.4), inset 0 0 6px rgba(0,0,0,0.8);
+      transform: scale(1.05);
+      transition: all 0.2s ease;
+    }
+
+    /* Modal de Detalhes do Traço */
+    .trait-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .trait-modal-content {
+      background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+      max-width: 650px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 30px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 170, 0, 0.1);
+      border: 1px solid rgba(255, 170, 0, 0.25);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--color-primary);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid rgba(255, 170, 0, 0.15);
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.8rem;
+      color: var(--color-primary);
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    .modal-body {
+      padding-top: 5px;
+    }
+
+    .modal-description {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #dfdfe5;
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    .animate-scale-in {
+      animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Salvaguardas */
+    .saving-throws-card {
+      background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .saving-throws-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .saving-throw-row {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+    .save-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 170, 0, 0.4);
+      margin-right: 10px;
+      display: inline-block;
+    }
+    .save-indicator.proficient {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 6px var(--color-primary);
+    }
+    .save-value {
+      width: 30px;
+      color: var(--color-primary);
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .save-name {
+      color: #fff;
+    }
+
+    /* Proficiências */
+    .proficiencies-card {
+      background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .proficiencies-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .proficiency-group {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .prof-group-title {
+      color: var(--color-primary);
+      margin-right: 6px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+    .prof-group-value {
+      color: #dfdfe5;
+      cursor: help;
+      border-bottom: 1px dotted rgba(255, 255, 255, 0.2);
+    }
+    .prof-group-value:hover {
+      color: #fff;
+      border-bottom-color: var(--color-primary);
+    }
+
+    /* Ações Panel */
+    .actions-panel {
+      margin-top: 10px;
+    }
+    .actions-sections-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .actions-category-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .actions-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .action-card-item {
+      background: rgba(24, 24, 28, 0.95);
+      border: 1px solid rgba(255, 170, 0, 0.12);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .action-card-item:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 6px 15px rgba(255, 170, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    .action-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 170, 0, 0.08);
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+    .action-name {
+      font-size: 1.15rem;
+      color: var(--color-primary);
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+    .action-badge {
+      font-size: 0.75rem;
+      background: rgba(255, 170, 0, 0.08);
+      border: 1px solid rgba(255, 170, 0, 0.2);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .action-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+    .action-stat {
+      color: #dfdfe5;
+    }
+    .stat-lbl {
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+    .no-actions-msg {
+      padding: 16px;
+      text-align: center;
+      color: var(--color-text-muted);
+      background: rgba(24, 24, 28, 0.4);
+      border: 1px dashed rgba(255, 170, 0, 0.1);
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    .action-modal-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .action-stat-badge {
+      background: rgba(255, 170, 0, 0.06);
+      border: 1px solid rgba(255, 170, 0, 0.15);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+    .badge-lbl {
+      color: var(--color-primary);
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      margin-right: 4px;
+    }
   `]
 })
 export class CharacterSheetComponent implements OnInit, OnDestroy {
@@ -835,8 +1466,28 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   maxHp: number = 0;
   tempHp: number = 0;
   hpInputVal: number = 1;
+  activeTab: string = 'ficha'; // 'ficha', 'actions' ou 'traits'
+  exibirEmFeet: boolean = false;
+  selectedTrait: any = null;
+  selectedAction: any = null;
   
   private routeSub: Subscription | undefined;
+
+  openTraitModal(trait: any): void {
+    this.selectedTrait = trait;
+  }
+
+  closeTraitModal(): void {
+    this.selectedTrait = null;
+  }
+
+  openActionModal(action: any): void {
+    this.selectedAction = action;
+  }
+
+  closeActionModal(): void {
+    this.selectedAction = null;
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -853,26 +1504,24 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   }
 
   loadCharacterData(): void {
-    // 1. Primeiro carrega todas as perícias oficiais da API
-    this.charService.getPericias().subscribe(periciasDb => {
-      this.pericias = periciasDb.map(p => ({
-        id: p.id,
-        nome: p.nome,
-        modificadorAtributo: p.modificadorAtributo,
-        proficiente: false,
-        maestria: false
-      }));
+    this.charService.getCharacterById(this.charId).subscribe(char => {
+      if (char) {
+        this.character = char;
+        // Carrega as perícias calculadas diretamente do personagem
+        this.pericias = (char.pericias || []).map(p => ({
+          id: p.id,
+          nome: p.nome,
+          modificadorAtributo: p.modificadorAtributo,
+          proficiente: p.proficiente,
+          maestria: p.maestria,
+          origem: p.origem
+        }));
 
-      // 2. Depois carrega o personagem pelo ID/código
-      this.charService.getCharacterById(this.charId).subscribe(char => {
-        if (char) {
-          this.character = char;
-          // Utiliza a vida máxima e atual que vêm do banco persistido
-          this.maxHp = char.sheet.vidaMaxima ?? 10;
-          this.currentHp = char.sheet.vidaAtual ?? this.maxHp;
-          this.tempHp = 0; // Inicializa vida temporária local
-        }
-      });
+        // Utiliza a vida máxima e atual que vêm do banco persistido
+        this.maxHp = char.sheet.vidaMaxima ?? 10;
+        this.currentHp = char.sheet.vidaAtual ?? this.maxHp;
+        this.tempHp = 0; // Inicializa vida temporária local
+      }
     });
   }
 
@@ -884,11 +1533,35 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
     return value >= 0 ? `+${value}` : `${value}`;
   }
 
-  getSpeed(character: Character): number {
-    if (character.classes && character.classes.length > 0) {
-      return character.classes[0].deslocamento;
+  toggleSpeedUnit(): void {
+    this.exibirEmFeet = !this.exibirEmFeet;
+  }
+
+  getSpeedValue(): number {
+    if (!this.character) return 9;
+    const racaSpeed = this.character.racaInfo?.deslocamento ?? 9;
+    let extraSpeed = 0;
+    if (this.character.classes) {
+      for (const cls of this.character.classes) {
+        if (cls.deslocamento) {
+          extraSpeed += cls.deslocamento;
+        }
+      }
     }
-    return 9; // Fallback
+    return racaSpeed + extraSpeed;
+  }
+
+  getSpeedDisplay(): string {
+    const metros = this.getSpeedValue();
+    if (this.exibirEmFeet) {
+      const feet = Math.round((metros / 1.5) * 5);
+      return `${feet} ft`;
+    }
+    return `${metros}m`;
+  }
+
+  getSpeed(character: Character): number {
+    return this.getSpeedValue();
   }
 
   get proficiencyBonus(): number {
@@ -954,6 +1627,35 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
       return `Proficiência (+${this.proficiencyBonus})`;
     }
     return 'Sem proficiência (Modificador base)';
+  }
+
+  getSkillTooltip(skill: PericiaView): string {
+    const baseTitle = this.getSkillTitle(skill);
+    if (skill.origem) {
+      return `${baseTitle} | Origem: ${skill.origem}`;
+    }
+    return baseTitle;
+  }
+
+  getActionsByType(type: string): AcaoInfo[] {
+    if (!this.character || !this.character.acoes) return [];
+    return this.character.acoes.filter(a => a.tipoAcao.toLowerCase() === type.toLowerCase());
+  }
+
+  getGroupedProficiencies(): { tipo: string, itens: any[] }[] {
+    if (!this.character || !this.character.proficiencias) return [];
+    const groups: { [key: string]: any[] } = {};
+    for (const p of this.character.proficiencias) {
+      const tipoPlural = p.tipo === 'Arma' ? 'Armas' : p.tipo === 'Armadura' ? 'Armaduras' : 'Ferramentas';
+      if (!groups[tipoPlural]) {
+        groups[tipoPlural] = [];
+      }
+      groups[tipoPlural].push(p);
+    }
+    return Object.keys(groups).map(key => ({
+      tipo: key,
+      itens: groups[key]
+    }));
   }
 
   applyDamage(): void {

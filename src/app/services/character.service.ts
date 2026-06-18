@@ -41,10 +41,58 @@ export interface ClasseInfo {
   nivel: number;
 }
 
+export interface RacaInfo {
+  nome: string;
+  descricao: string;
+  tipoCriatura: string;
+  tamanho: string;
+  deslocamento: number;
+}
+
+export interface TracoRacialInfo {
+  id?: number;
+  nome: string;
+  descricao: string;
+}
+
 export interface PericiaInfo {
   id: number;
   nome: string;
   modificadorAtributo: string;
+}
+
+export interface PericiaCalculada {
+  id: number;
+  nome: string;
+  modificadorAtributo: string;
+  proficiente: boolean;
+  maestria: boolean;
+  origem?: string;
+}
+
+export interface AcaoInfo {
+  id: number;
+  nome: string;
+  tipoAcao: string;
+  alcance: string;
+  bonusAcerto: string;
+  dano: string;
+  tipoDano: string;
+  descricao?: string;
+}
+
+export interface SalvaguardaInfo {
+  atributo: string;
+  modificador: number;
+  isProficiente: boolean;
+  valor: number;
+}
+
+export interface ProficienciaGeralInfo {
+  id: number;
+  tipo: string;
+  nome: string;
+  origem: string;
 }
 
 export interface Character {
@@ -66,6 +114,17 @@ export interface Character {
 
   // Classes detailed info
   classes?: ClasseInfo[];
+
+  // Race detailed info
+  racaInfo?: RacaInfo;
+  tracosRaciais?: TracoRacialInfo[];
+
+  // Pericias calculadas vindo da API
+  pericias?: PericiaCalculada[];
+  acoes?: AcaoInfo[];
+  salvaguardas?: SalvaguardaInfo[];
+  proficiencias?: ProficienciaGeralInfo[];
+  idiomas?: string[];
 }
 
 @Injectable({
@@ -139,7 +198,14 @@ export class CharacterService {
           sheet: this.createEmptySheet(item.nivel, item.alinhamento, item),
           bonds: [],
           chapters: item.historias || [],
-          classes: item.classes || []
+          classes: item.classes || [],
+          racaInfo: item.racaInfo,
+          tracosRaciais: item.tracosRaciais || [],
+          pericias: item.pericias || [],
+          acoes: item.acoes || [],
+          salvaguardas: item.salvaguardas || [],
+          proficiencias: item.proficiencias || [],
+          idiomas: item.idiomas || []
         };
       }),
       catchError(() => of(undefined))
