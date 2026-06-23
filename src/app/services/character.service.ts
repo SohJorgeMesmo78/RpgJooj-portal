@@ -33,12 +33,23 @@ export interface Chapter {
   texto: string;
 }
 
+export interface ClasseProgressoInfo {
+  nivel: number;
+  bonusProficiencia: number;
+  truquesConhecidos: number;
+  magiasConhecidas: number;
+  espacosMagia: number;
+  nivelMagia: number;
+  invocacoesConhecidas: number;
+}
+
 export interface ClasseInfo {
   nome: string;
   subclasse?: string;
   dadoVida: string;
   deslocamento: number;
   nivel: number;
+  progresso?: ClasseProgressoInfo;
 }
 
 export interface RacaInfo {
@@ -79,6 +90,8 @@ export interface AcaoInfo {
   dano: string;
   tipoDano: string;
   descricao?: string;
+  acertoTooltip?: string;
+  danoTooltip?: string;
 }
 
 export interface SalvaguardaInfo {
@@ -93,6 +106,13 @@ export interface ProficienciaGeralInfo {
   tipo: string;
   nome: string;
   origem: string;
+}
+
+export interface MagiaInfo {
+  id: number;
+  nome: string;
+  nivel: number;
+  descricao: string;
 }
 
 export interface Character {
@@ -125,6 +145,7 @@ export interface Character {
   salvaguardas?: SalvaguardaInfo[];
   proficiencias?: ProficienciaGeralInfo[];
   idiomas?: string[];
+  magias?: MagiaInfo[];
 }
 
 @Injectable({
@@ -203,9 +224,9 @@ export class CharacterService {
           tracosRaciais: item.tracosRaciais || [],
           pericias: item.pericias || [],
           acoes: item.acoes || [],
-          salvaguardas: item.salvaguardas || [],
           proficiencias: item.proficiencias || [],
-          idiomas: item.idiomas || []
+          idiomas: item.idiomas || [],
+          magias: item.magias || []
         };
       }),
       catchError(() => of(undefined))

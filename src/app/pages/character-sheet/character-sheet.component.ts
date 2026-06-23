@@ -125,6 +125,9 @@ export interface PericiaView {
         <button class="tab-button" [class.active]="activeTab === 'traits'" (click)="activeTab = 'traits'">
           Traços Raciais
         </button>
+        <button class="tab-button" [class.active]="activeTab === 'spells'" (click)="activeTab = 'spells'">
+          Magias
+        </button>
       </div>
 
       <!-- Aba 1: Ficha -->
@@ -282,8 +285,8 @@ export interface PericiaView {
                 </div>
                 <div class="action-card-body">
                   <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
-                  <div class="action-stat"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
-                  <div class="action-stat"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+                  <div class="action-stat" [title]="parseTooltip(acao.acertoTooltip) || ''"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+                  <div class="action-stat" [title]="parseTooltip(acao.danoTooltip) || ''"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
                 </div>
               </div>
               <div class="no-actions-msg" *ngIf="getActionsByType('Ação').length === 0">
@@ -303,8 +306,8 @@ export interface PericiaView {
                 </div>
                 <div class="action-card-body">
                   <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
-                  <div class="action-stat"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
-                  <div class="action-stat"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+                  <div class="action-stat" [title]="parseTooltip(acao.acertoTooltip) || ''"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+                  <div class="action-stat" [title]="parseTooltip(acao.danoTooltip) || ''"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
                 </div>
               </div>
               <div class="no-actions-msg" *ngIf="getActionsByType('Ação Bônus').length === 0">
@@ -324,8 +327,8 @@ export interface PericiaView {
                 </div>
                 <div class="action-card-body">
                   <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
-                  <div class="action-stat"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
-                  <div class="action-stat"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+                  <div class="action-stat" [title]="parseTooltip(acao.acertoTooltip) || ''"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+                  <div class="action-stat" [title]="parseTooltip(acao.danoTooltip) || ''"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
                 </div>
               </div>
               <div class="no-actions-msg" *ngIf="getActionsByType('Reação').length === 0">
@@ -404,6 +407,105 @@ export interface PericiaView {
           </div>
         </div>
       </div>
+
+      <!-- Aba 4: Magias -->
+      <div class="spells-panel animate-fade-in" *ngIf="activeTab === 'spells'">
+        
+        <!-- Atributos de Conjuração -->
+        <div class="spells-casting-header medieval-border">
+          <div class="casting-stat-box">
+            <span class="casting-stat-label font-medieval">Atributo de Conjuração</span>
+            <span class="casting-stat-value font-medieval">{{ getSpellcastingAbilityAbbrev() }}</span>
+            <span class="casting-stat-sub font-medieval">({{ getSpellcastingAbilityName() }})</span>
+          </div>
+          <div class="casting-stat-box">
+            <span class="casting-stat-label font-medieval">CD de Salvação de Magia</span>
+            <span class="casting-stat-value font-medieval">{{ getSpellSaveDC() }}</span>
+            <span class="casting-stat-sub font-medieval">8 + Prof + Mod</span>
+          </div>
+          <div class="casting-stat-box">
+            <span class="casting-stat-label font-medieval">Ataque de Magia</span>
+            <span class="casting-stat-value font-medieval">{{ getSpellAttackBonus() }}</span>
+            <span class="casting-stat-sub font-medieval">Prof + Mod</span>
+          </div>
+        </div>
+
+        <!-- Resumo dos Espaços de Magia -->
+        <div class="spells-slots-header medieval-border" *ngIf="getSpellSlotsInfo().length > 0">
+          <h3 class="section-title font-medieval" style="border-left: 3px solid var(--color-primary); padding-left: 8px; font-size: 1.4rem;">Espaços de Magia</h3>
+          <div class="slots-badges-container">
+            <div class="slot-badge" *ngFor="let info of getSpellSlotsInfo()">
+              <span class="slot-badge-label font-medieval">{{ info.classe }}:</span>
+              <span class="slot-badge-value font-medieval">
+                {{ info.espacos }} slots (Nível {{ info.nivelMagia }})
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Container das Listas (Truques / Magias) -->
+        <div class="spells-grid-container">
+          
+          <!-- Coluna da Esquerda: Truques (Nível 0) -->
+          <div class="spells-category-section">
+            <h2 class="section-title font-medieval">Truques (Cantrips)</h2>
+            <div class="spells-list">
+              <div class="spell-card-item medieval-border" 
+                   *ngFor="let magia of getSpellsByLevel(0)" 
+                   (click)="openSpellModal(magia)"
+                   title="Clique para ver os detalhes do truque">
+                <div class="spell-card-header">
+                  <span class="spell-icon">✦</span>
+                  <h3 class="spell-name font-medieval">{{ magia.nome }}</h3>
+                  <span class="spell-level-badge font-medieval">Nível {{ magia.nivel }}</span>
+                </div>
+                <p class="spell-card-description">{{ magia.descricao }}</p>
+              </div>
+              <div class="no-spells-msg" *ngIf="getSpellsByLevel(0).length === 0">
+                Nenhum truque conhecido.
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna da Direita: Magias (Nível 1+) -->
+          <div class="spells-category-section">
+            <h2 class="section-title font-medieval">Magias</h2>
+            <div class="spells-list">
+              <div class="spell-card-item medieval-border" 
+                   *ngFor="let magia of getSpellsLevel1Plus()" 
+                   (click)="openSpellModal(magia)"
+                   title="Clique para ver os detalhes da magia">
+                <div class="spell-card-header">
+                  <span class="spell-icon">🔥</span>
+                  <h3 class="spell-name font-medieval">{{ magia.nome }}</h3>
+                  <span class="spell-level-badge font-medieval">Nível {{ magia.nivel }}</span>
+                </div>
+                <p class="spell-card-description">{{ magia.descricao }}</p>
+              </div>
+              <div class="no-spells-msg" *ngIf="getSpellsLevel1Plus().length === 0">
+                Nenhuma magia de nível 1 ou superior conhecida.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal de Detalhes da Magia -->
+      <div class="trait-modal-overlay" *ngIf="selectedSpell" (click)="closeSpellModal()">
+        <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+          <button class="modal-close-btn" (click)="closeSpellModal()">✕</button>
+          <div class="modal-header">
+            <span class="trait-icon">✦</span>
+            <h3 class="modal-title font-medieval">{{ selectedSpell.nome }}</h3>
+            <span class="spell-level-badge font-medieval" style="margin-left: auto;">Nível {{ selectedSpell.nivel }}</span>
+          </div>
+          <div class="modal-body">
+            <p class="modal-description" [innerHTML]="formatSpellDescription(selectedSpell.descricao)"></p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Container de Loading -->
@@ -1456,6 +1558,175 @@ export interface PericiaView {
       font-size: 0.8rem;
       margin-right: 4px;
     }
+
+    /* Spells Panel */
+    .spells-panel {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .spells-casting-header {
+      background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+      padding: 16px 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      .spells-casting-header {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+    }
+    .casting-stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      position: relative;
+    }
+    .casting-stat-box:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -10px;
+      top: 10%;
+      height: 80%;
+      width: 1px;
+      background: rgba(255, 170, 0, 0.15);
+    }
+    @media (max-width: 600px) {
+      .casting-stat-box:not(:last-child)::after {
+        display: none;
+      }
+    }
+    .casting-stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      letter-spacing: 0.5px;
+    }
+    .casting-stat-value {
+      font-size: 1.8rem;
+      color: var(--color-primary);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 8px rgba(255, 170, 0, 0.25);
+    }
+    .casting-stat-sub {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+    .spells-slots-header {
+      background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .slots-badges-container {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    .slot-badge {
+      background: rgba(255, 170, 0, 0.08);
+      border: 1px solid rgba(255, 170, 0, 0.2);
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .slot-badge-label {
+      color: var(--color-primary);
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+    .slot-badge-value {
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .spells-grid-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .spells-category-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .spells-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .spell-card-item {
+      background: rgba(24, 24, 28, 0.95);
+      border: 1px solid rgba(255, 170, 0, 0.12);
+      border-radius: var(--border-radius);
+      padding: 18px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .spell-card-item:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 6px 15px rgba(255, 170, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    .spell-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 170, 0, 0.08);
+      padding-bottom: 6px;
+    }
+    .spell-name {
+      font-size: 1.2rem;
+      color: var(--color-primary);
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+    .spell-level-badge {
+      font-size: 0.75rem;
+      background: rgba(255, 170, 0, 0.08);
+      border: 1px solid rgba(255, 170, 0, 0.2);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: auto;
+      text-transform: uppercase;
+    }
+    .spell-card-description {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--color-text-muted);
+      margin: 0;
+      white-space: pre-line;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      text-overflow: ellipsis;
+    }
+    .no-spells-msg {
+      padding: 16px;
+      text-align: center;
+      color: var(--color-text-muted);
+      background: rgba(24, 24, 28, 0.4);
+      border: 1px dashed rgba(255, 170, 0, 0.1);
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
   `]
 })
 export class CharacterSheetComponent implements OnInit, OnDestroy {
@@ -1466,10 +1737,11 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   maxHp: number = 0;
   tempHp: number = 0;
   hpInputVal: number = 1;
-  activeTab: string = 'ficha'; // 'ficha', 'actions' ou 'traits'
+  activeTab: string = 'ficha'; // 'ficha', 'actions', 'traits' ou 'spells'
   exibirEmFeet: boolean = false;
   selectedTrait: any = null;
   selectedAction: any = null;
+  selectedSpell: any = null;
   
   private routeSub: Subscription | undefined;
 
@@ -1487,6 +1759,104 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
 
   closeActionModal(): void {
     this.selectedAction = null;
+  }
+
+  openSpellModal(spell: any): void {
+    this.selectedSpell = spell;
+  }
+
+  closeSpellModal(): void {
+    this.selectedSpell = null;
+  }
+
+  getSpellSlotsInfo(): { classe: string, espacos: number, nivelMagia: number }[] {
+    if (!this.character || !this.character.classes) return [];
+    return this.character.classes
+      .filter(c => c.progresso && c.progresso.espacosMagia > 0)
+      .map(c => ({
+        classe: c.nome,
+        espacos: c.progresso!.espacosMagia,
+        nivelMagia: c.progresso!.nivelMagia
+      }));
+  }
+
+  getSpellsByLevel(level: number): any[] {
+    if (!this.character || !this.character.magias) return [];
+    return this.character.magias.filter(m => m.nivel === level);
+  }
+
+  getSpellsLevel1Plus(): any[] {
+    if (!this.character || !this.character.magias) return [];
+    return this.character.magias.filter(m => m.nivel > 0);
+  }
+
+  formatSpellDescription(desc: string): string {
+    if (!desc) return '';
+    return desc.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  getSpellcastingAbilityName(): string {
+    if (!this.character || !this.character.classes || this.character.classes.length === 0) return 'Carisma';
+    const mainClass = this.character.classes[0].nome.toLowerCase();
+    if (mainClass === 'bruxo' || mainClass === 'bardo' || mainClass === 'feiticeiro' || mainClass === 'paladino') {
+      return 'Carisma';
+    }
+    if (mainClass === 'mago') {
+      return 'Inteligência';
+    }
+    if (mainClass === 'clerigo' || mainClass === 'druida' || mainClass === 'patrulheiro') {
+      return 'Sabedoria';
+    }
+    return 'Carisma';
+  }
+
+  getSpellcastingAbilityAbbrev(): string {
+    const name = this.getSpellcastingAbilityName();
+    switch (name) {
+      case 'Carisma': return 'CAR';
+      case 'Inteligência': return 'INT';
+      case 'Sabedoria': return 'SAB';
+      default: return 'CAR';
+    }
+  }
+
+  getSpellcastingModifierValue(): number {
+    if (!this.character) return 0;
+    const attrName = this.getSpellcastingAbilityName();
+    const attrValue = this.getAttrValueByPortugueseName(attrName);
+    return this.getModifier(attrValue);
+  }
+
+  getSpellSaveDC(): number {
+    return 8 + this.proficiencyBonus + this.getSpellcastingModifierValue();
+  }
+
+  getSpellAttackBonus(): string {
+    const val = this.proficiencyBonus + this.getSpellcastingModifierValue();
+    return val >= 0 ? `+${val}` : `${val}`;
+  }
+
+  parseTooltip(template: string | undefined): string {
+    if (!template) return '';
+    let result = template;
+    
+    const attrs = ['FOR', 'DES', 'CON', 'INT', 'SAB', 'CAR'];
+    for (const attr of attrs) {
+      const val = this.getAttrValueByPortugueseName(attr);
+      const mod = this.getModifier(val);
+      const signedMod = this.formatModifier(mod);
+      const unsignedMod = Math.abs(mod).toString();
+      
+      result = result.replace(new RegExp(`\\[${attr}\\]`, 'g'), signedMod);
+      result = result.replace(new RegExp(`\\[${attr}_UNSIG\\]`, 'g'), unsignedMod);
+    }
+    
+    const prof = this.proficiencyBonus;
+    result = result.replace(/\[PROF\]/g, `${prof}`);
+    
+    result = result.replace(/\+\s*-/g, '- ');
+    
+    return result;
   }
 
   constructor(
@@ -1576,13 +1946,26 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
     const name = attrName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
     switch (name) {
-      case 'forca': return attrs.strength;
-      case 'destreza': return attrs.dexterity;
-      case 'constituicao': return attrs.constitution;
-      case 'inteligencia': return attrs.intelligence;
-      case 'sabedoria': return attrs.wisdom;
-      case 'carisma': return attrs.charisma;
-      default: return 10;
+      case 'forca':
+      case 'for':
+        return attrs.strength;
+      case 'destreza':
+      case 'des':
+        return attrs.dexterity;
+      case 'constituicao':
+      case 'con':
+        return attrs.constitution;
+      case 'inteligencia':
+      case 'int':
+        return attrs.intelligence;
+      case 'sabedoria':
+      case 'sab':
+        return attrs.wisdom;
+      case 'carisma':
+      case 'car':
+        return attrs.charisma;
+      default:
+        return 10;
     }
   }
 
@@ -1638,8 +2021,32 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   }
 
   getActionsByType(type: string): AcaoInfo[] {
-    if (!this.character || !this.character.acoes) return [];
-    return this.character.acoes.filter(a => a.tipoAcao.toLowerCase() === type.toLowerCase());
+    if (!this.character) return [];
+    const baseActions = this.character.acoes ? [...this.character.acoes] : [];
+    
+    // Adiciona "Raio místico" se o personagem o possuir nas suas magias
+    if (type.toLowerCase() === 'ação' && this.character.magias) {
+      const temRaioMistico = this.character.magias.some(m => m.nome.toLowerCase() === 'raio místico');
+      if (temRaioMistico) {
+        const charisMod = this.getSpellcastingModifierValue();
+        const danoSuffix = charisMod > 0 ? `+${charisMod}` : '';
+        const raioAction: AcaoInfo = {
+          id: 999,
+          nome: 'Raio místico',
+          tipoAcao: 'Ação',
+          alcance: '36m / 120ft',
+          bonusAcerto: this.getSpellAttackBonus(),
+          dano: `1d10${danoSuffix}`,
+          tipoDano: 'Energia',
+          descricao: 'Um feixe de energia estalante vai em direção a uma criatura. Faça um ataque à distância com magia. Com um acerto, o alvo sofre 1d10 de dano de energia. Explosão Agonizante: Você adiciona seu Modificador de Carisma ao dano.',
+          acertoTooltip: '[CAR](CAR) + [PROF](Proficiência)',
+          danoTooltip: '1d10 + [CAR_UNSIG](CAR)'
+        };
+        baseActions.push(raioAction);
+      }
+    }
+    
+    return baseActions.filter(a => a.tipoAcao.toLowerCase() === type.toLowerCase());
   }
 
   getGroupedProficiencies(): { tipo: string, itens: any[] }[] {
