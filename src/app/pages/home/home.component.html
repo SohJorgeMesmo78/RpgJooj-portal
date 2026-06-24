@@ -13,7 +13,7 @@
     <div class="header-divider"></div>
   </header>
 
-  <main class="character-grid" *ngIf="characters$ | async as characters">
+  <main class="character-grid" *ngIf="characters$ | async as characters; else loading">
     <div 
       *ngFor="let char of characters" 
       [routerLink]="['/', char.id]" 
@@ -53,4 +53,11 @@
       </div>
     </div>
   </main>
+
+  <ng-template #loading>
+    <div class="loading-container font-medieval">
+      <div class="spinner"></div>
+      Reunindo aventureiros na taverna...
+    </div>
+  </ng-template>
 </div>

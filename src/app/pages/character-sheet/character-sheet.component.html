@@ -1,0 +1,494 @@
+<div class="sheet-container animate-fade-in" *ngIf="character">
+  <!-- Header de Navegação -->
+  <div class="navigation-header">
+    <a [routerLink]="['/', charId]" class="back-link">
+      <span class="arrow">➔</span> Voltar para Detalhes
+    </a>
+    <div class="sheet-title-badge font-medieval">FICHA DE PERSONAGEM</div>
+  </div>
+
+  <!-- Cabeçalho Principal Compacto (Estilo Placa Metálica Horizontal) -->
+  <header class="character-header medieval-border">
+    <div class="header-left">
+      <h1 class="character-name font-medieval">{{ character.name }}</h1>
+    </div>
+    <div class="header-right">
+      <div class="character-meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Classe e Subclasse</span>
+          <span class="meta-value">{{ character.classAndSubclass }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Raça</span>
+          <span class="meta-value">{{ character.race }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Nível</span>
+          <span class="meta-value font-medieval">{{ character.sheet.level }}</span>
+        </div>
+        <div class="meta-item" *ngIf="character.sheet.alignment">
+          <span class="meta-label">Alinhamento</span>
+          <span class="meta-value">{{ character.sheet.alignment }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Painel Principal de Combate & Vida (Compactado em 1 Linha) -->
+  <section class="combat-panel-grid">
+    <!-- CA Escudo -->
+    <div class="combat-stat-box ca-box">
+      <div class="shield-icon">
+        <span class="stat-value font-medieval">{{ 10 + getModifier(character.sheet.attributes.dexterity) }}</span>
+      </div>
+      <span class="stat-label font-medieval">Armadura (CA)</span>
+    </div>
+
+    <!-- Iniciativa -->
+    <div class="combat-stat-box initiative-box">
+      <div class="stat-circle font-medieval">
+        {{ formatModifier(getModifier(character.sheet.attributes.dexterity)) }}
+      </div>
+      <span class="stat-label font-medieval">Iniciativa</span>
+    </div>
+
+    <!-- Deslocamento -->
+    <div class="combat-stat-box speed-box clickable-speed-box" (click)="toggleSpeedUnit()" title="Clique para alternar entre metros (m) e feet (ft)" style="cursor: pointer;">
+      <div class="stat-circle font-medieval">
+        {{ getSpeedDisplay() }}
+      </div>
+      <span class="stat-label font-medieval">
+        Deslocamento <span class="unit-toggle-label">({{ exibirEmFeet ? 'ft' : 'm' }})</span>
+      </span>
+    </div>
+
+    <!-- Bônus de Proficiência -->
+    <div class="combat-stat-box prof-bonus-box">
+      <div class="stat-circle font-medieval">
+        +{{ proficiencyBonus }}
+      </div>
+      <span class="stat-label font-medieval">Proficiência</span>
+    </div>
+
+    <!-- Pontos de Vida (HP) - Compactado e ao lado da Proficiência -->
+    <div class="combat-stat-box hp-box font-medieval">
+      <div class="hp-header">
+        <span class="stat-label">Pontos de Vida</span>
+        <div class="hp-values">
+          <span class="current-hp">{{ currentHp + tempHp }}</span>
+          <span class="separator">/</span>
+          <span class="max-hp">{{ maxHp }}</span>
+          <span class="temp-hp-parenthesis" *ngIf="tempHp > 0">({{ tempHp }})</span>
+        </div>
+      </div>
+      <div class="hp-bar-container" [class.has-temp-hp]="tempHp > 0">
+        <div class="hp-bar-fill" [style.width.%]="(currentHp / maxHp) * 100"></div>
+      </div>
+      <!-- HP Controls: Input e Botões de Dano/Cura -->
+      <div class="hp-controls-wrapper">
+        <input type="number" [(ngModel)]="hpInputVal" class="hp-number-input font-medieval" min="1" />
+        <button (click)="applyDamage()" class="hp-action-btn damage-action-btn">Dano</button>
+        <button (click)="applyHeal()" class="hp-action-btn heal-action-btn">Cura</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu de Abas Temático -->
+  <div class="tabs-navigation font-medieval">
+    <button class="tab-button" [class.active]="activeTab === 'ficha'" (click)="activeTab = 'ficha'">
+      Ficha
+    </button>
+    <button class="tab-button" [class.active]="activeTab === 'actions'" (click)="activeTab = 'actions'">
+      Ações
+    </button>
+    <button class="tab-button" [class.active]="activeTab === 'traits'" (click)="activeTab = 'traits'">
+      Traços Raciais
+    </button>
+    <button class="tab-button" [class.active]="activeTab === 'spells'" (click)="activeTab = 'spells'">
+      Magias
+    </button>
+  </div>
+
+  <!-- Aba 1: Ficha -->
+  <div class="attributes-skills-grid" *ngIf="activeTab === 'ficha'">
+    
+    <!-- Lado Esquerdo: Atributos & Perícias -->
+    <div class="left-ficha-column">
+      <section class="attributes-section">
+        <h2 class="section-title font-medieval">Atributos</h2>
+        <div class="attributes-list">
+          
+          <!-- Força -->
+          <div class="attribute-card">
+            <span class="attr-name">FOR</span>
+            <span class="attr-modifier font-medieval">
+              {{ formatModifier(getModifier(character.sheet.attributes.strength)) }}
+            </span>
+            <div class="attr-value font-medieval">{{ character.sheet.attributes.strength }}</div>
+          </div>
+
+          <!-- Destreza -->
+          <div class="attribute-card">
+            <span class="attr-name">DES</span>
+            <span class="attr-modifier font-medieval">
+              {{ formatModifier(getModifier(character.sheet.attributes.dexterity)) }}
+            </span>
+            <div class="attr-value font-medieval">{{ character.sheet.attributes.dexterity }}</div>
+          </div>
+
+          <!-- Constituição -->
+          <div class="attribute-card">
+            <span class="attr-name">CON</span>
+            <span class="attr-modifier font-medieval">
+              {{ formatModifier(getModifier(character.sheet.attributes.constitution)) }}
+            </span>
+            <div class="attr-value font-medieval">{{ character.sheet.attributes.constitution }}</div>
+          </div>
+
+          <!-- Inteligência -->
+          <div class="attribute-card">
+            <span class="attr-name">INT</span>
+            <span class="attr-modifier font-medieval">
+              {{ formatModifier(getModifier(character.sheet.attributes.intelligence)) }}
+            </span>
+            <div class="attr-value font-medieval">{{ character.sheet.attributes.intelligence }}</div>
+          </div>
+
+          <!-- Sabedoria -->
+          <div class="attribute-card">
+            <span class="attr-name">SAB</span>
+            <span class="attr-modifier font-medieval">
+              {{ formatModifier(getModifier(character.sheet.attributes.wisdom)) }}
+            </span>
+            <div class="attr-value font-medieval">{{ character.sheet.attributes.wisdom }}</div>
+          </div>
+
+          <!-- Carisma -->
+          <div class="attribute-card carisma-highlight">
+            <span class="attr-name">CAR</span>
+            <span class="attr-modifier font-medieval">
+              {{ formatModifier(getModifier(character.sheet.attributes.charisma)) }}
+            </span>
+            <div class="attr-value font-medieval">{{ character.sheet.attributes.charisma }}</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Perícias -->
+      <section class="skills-section" style="margin-top: 24px;">
+        <div class="skills-section-header">
+          <h2 class="section-title font-medieval">Perícias</h2>
+          <span class="skills-info-hint">Proficiências e modificadores vindos do banco de dados</span>
+        </div>
+        <div class="skills-card-container medieval-border">
+          <div class="skills-list">
+            <div class="skill-row" *ngFor="let skill of pericias" [title]="getSkillTooltip(skill)">
+              
+              <!-- Bolinha Única de 3 Estados (Sem, P ou M) -->
+              <div class="skill-checks-single">
+                <button 
+                  [class.proficient]="skill.proficiente && !skill.maestria" 
+                  [class.maestria]="skill.proficiente && skill.maestria" 
+                  class="single-check-btn">
+                </button>
+              </div>
+
+              <!-- Modificador Final da Perícia -->
+              <span class="skill-modifier font-medieval" [class.highlighted]="skill.proficiente">
+                {{ formatModifier(getSkillModifier(skill)) }}
+              </span>
+
+              <!-- Nome e Atributo -->
+              <span class="skill-name">{{ skill.nome }}</span>
+              <span class="skill-attr">({{ skill.modificadorAtributo.substring(0, 3) }})</span>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Lado Direito: Salvaguardas & Proficiências -->
+    <div class="right-ficha-column">
+      <!-- Salvaguardas -->
+      <section class="saving-throws-section" *ngIf="character.salvaguardas && character.salvaguardas.length > 0">
+        <h2 class="section-title font-medieval">Salvaguardas</h2>
+        <div class="saving-throws-card medieval-border">
+          <div class="saving-throws-list">
+            <div class="saving-throw-row" *ngFor="let save of character.salvaguardas">
+              <span class="save-indicator" [class.proficient]="save.isProficiente"></span>
+              <span class="save-value font-medieval">{{ formatModifier(save.valor) }}</span>
+              <span class="save-name">{{ save.atributo }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Proficiências Gerais -->
+      <section class="proficiencies-section" style="margin-top: 24px;" *ngIf="character.proficiencias && character.proficiencias.length > 0">
+        <h2 class="section-title font-medieval">Proficiências</h2>
+        <div class="proficiencies-card medieval-border">
+          <div class="proficiencies-list">
+            <div class="proficiency-group" *ngFor="let group of getGroupedProficiencies()">
+              <span class="prof-group-title font-medieval">{{ group.tipo }}:</span>
+              <span class="prof-group-value" *ngFor="let item of group.itens; let last = last" [title]="'Origem: ' + item.origem">
+                {{ item.nome }}{{ last ? '' : ', ' }}
+              </span>
+            </div>
+            <!-- Idiomas -->
+            <div class="proficiency-group" *ngIf="character.idiomas && character.idiomas.length > 0">
+              <span class="prof-group-title font-medieval">Idiomas:</span>
+              <span class="prof-group-value">
+                {{ character.idiomas.join(', ') }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <!-- Aba 2: Ações -->
+  <div class="actions-panel animate-fade-in" *ngIf="activeTab === 'actions'">
+    <div class="actions-sections-container">
+      <!-- Ações de Combate -->
+      <div class="actions-category-section">
+        <h2 class="section-title font-medieval">Ações</h2>
+        <div class="actions-list-container">
+          <div class="action-card-item medieval-border" *ngFor="let acao of getActionsByType('Ação')" (click)="openActionModal(acao)" title="Clique para ver a descrição completa">
+            <div class="action-card-header">
+              <h3 class="action-name font-medieval">{{ acao.nome }}</h3>
+              <span class="action-badge font-medieval">{{ acao.tipoAcao }}</span>
+            </div>
+            <div class="action-card-body">
+              <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
+              <div class="action-stat" [title]="parseTooltip(acao.acertoTooltip) || ''"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+              <div class="action-stat" [title]="parseTooltip(acao.danoTooltip) || ''"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+            </div>
+          </div>
+          <div class="no-actions-msg" *ngIf="getActionsByType('Ação').length === 0">
+            Nenhuma Ação registrada.
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações Bônus -->
+      <div class="actions-category-section">
+        <h2 class="section-title font-medieval">Ações Bônus</h2>
+        <div class="actions-list-container">
+          <div class="action-card-item medieval-border" *ngFor="let acao of getActionsByType('Ação Bônus')" (click)="openActionModal(acao)" title="Clique para ver a descrição completa">
+            <div class="action-card-header">
+              <h3 class="action-name font-medieval">{{ acao.nome }}</h3>
+              <span class="action-badge font-medieval">{{ acao.tipoAcao }}</span>
+            </div>
+            <div class="action-card-body">
+              <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
+              <div class="action-stat" [title]="parseTooltip(acao.acertoTooltip) || ''"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+              <div class="action-stat" [title]="parseTooltip(acao.danoTooltip) || ''"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+            </div>
+          </div>
+          <div class="no-actions-msg" *ngIf="getActionsByType('Ação Bônus').length === 0">
+            Nenhuma Ação Bônus registrada.
+          </div>
+        </div>
+      </div>
+
+      <!-- Reações -->
+      <div class="actions-category-section">
+        <h2 class="section-title font-medieval">Reações</h2>
+        <div class="actions-list-container">
+          <div class="action-card-item medieval-border" *ngFor="let acao of getActionsByType('Reação')" (click)="openActionModal(acao)" title="Clique para ver a descrição completa">
+            <div class="action-card-header">
+              <h3 class="action-name font-medieval">{{ acao.nome }}</h3>
+              <span class="action-badge font-medieval">{{ acao.tipoAcao }}</span>
+            </div>
+            <div class="action-card-body">
+              <div class="action-stat"><span class="stat-lbl">Alcance:</span> {{ acao.alcance }}</div>
+              <div class="action-stat" [title]="parseTooltip(acao.acertoTooltip) || ''"><span class="stat-lbl">Acerto:</span> {{ acao.bonusAcerto }}</div>
+              <div class="action-stat" [title]="parseTooltip(acao.danoTooltip) || ''"><span class="stat-lbl">Dano:</span> {{ acao.dano }} ({{ acao.tipoDano }})</div>
+            </div>
+          </div>
+          <div class="no-actions-msg" *ngIf="getActionsByType('Reação').length === 0">
+            Nenhuma Reação registrada.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aba 3: Traços Raciais -->
+  <div class="traits-panel animate-fade-in" *ngIf="activeTab === 'traits'">
+    <!-- Visão Geral da Raça -->
+    <div class="race-overview medieval-border" *ngIf="character.racaInfo">
+      <div class="race-header">
+        <h2 class="race-title font-medieval">{{ character.racaInfo.nome }}</h2>
+        <div class="race-meta">
+          <span class="meta-badge"><strong>Tipo:</strong> {{ character.racaInfo.tipoCriatura }}</span>
+          <span class="meta-badge"><strong>Tamanho:</strong> {{ character.racaInfo.tamanho }}</span>
+          <span class="meta-badge"><strong>Deslocamento Base:</strong> {{ getSpeedDisplay() }}</span>
+        </div>
+      </div>
+      <p class="race-description">{{ character.racaInfo.descricao }}</p>
+    </div>
+
+    <!-- Lista de Traços Raciais -->
+    <div class="traits-list-container">
+      <h3 class="section-title font-medieval">Habilidades de Raça</h3>
+      
+      <div class="traits-grid">
+        <div class="trait-card" *ngFor="let trait of character.tracosRaciais" (click)="openTraitModal(trait)" title="Clique para ver a descrição completa">
+          <div class="trait-header">
+            <span class="trait-icon">✦</span>
+            <h4 class="trait-name font-medieval">{{ trait.nome }}</h4>
+          </div>
+          <p class="trait-description">{{ trait.descricao }}</p>
+        </div>
+        
+        <div class="no-traits-card medieval-border" *ngIf="!character.tracosRaciais || character.tracosRaciais.length === 0">
+          <p>Nenhuma habilidade ou traço racial registrado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes do Traço Racial -->
+  <div class="trait-modal-overlay" *ngIf="selectedTrait" (click)="closeTraitModal()">
+    <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeTraitModal()">✕</button>
+      <div class="modal-header">
+        <span class="trait-icon">✦</span>
+        <h3 class="modal-title font-medieval">{{ selectedTrait.nome }}</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">{{ selectedTrait.descricao }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes da Ação -->
+  <div class="trait-modal-overlay" *ngIf="selectedAction" (click)="closeActionModal()">
+    <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeActionModal()">✕</button>
+      <div class="modal-header">
+        <span class="trait-icon">⚔️</span>
+        <h3 class="modal-title font-medieval">{{ selectedAction.nome }}</h3>
+      </div>
+      <div class="modal-body">
+        <div class="action-modal-stats-grid">
+          <div class="action-stat-badge"><span class="badge-lbl">Tipo:</span> {{ selectedAction.tipoAcao }}</div>
+          <div class="action-stat-badge"><span class="badge-lbl">Alcance:</span> {{ selectedAction.alcance }}</div>
+          <div class="action-stat-badge"><span class="badge-lbl">Acerto:</span> {{ selectedAction.bonusAcerto }}</div>
+          <div class="action-stat-badge"><span class="badge-lbl">Dano:</span> {{ selectedAction.dano }} ({{ selectedAction.tipoDano }})</div>
+        </div>
+        <p class="modal-description" style="margin-top: 20px;">{{ selectedAction.descricao || 'Nenhuma descrição detalhada.' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aba 4: Magias -->
+  <div class="spells-panel animate-fade-in" *ngIf="activeTab === 'spells'">
+    
+    <!-- Atributos de Conjuração -->
+    <div class="spells-casting-header medieval-border">
+      <div class="casting-stat-box">
+        <span class="casting-stat-label font-medieval">Atributo de Conjuração</span>
+        <span class="casting-stat-value font-medieval">{{ getSpellcastingAbilityAbbrev() }}</span>
+        <span class="casting-stat-sub font-medieval">({{ getSpellcastingAbilityName() }})</span>
+      </div>
+      <div class="casting-stat-box">
+        <span class="casting-stat-label font-medieval">CD de Salvação de Magia</span>
+        <span class="casting-stat-value font-medieval">{{ getSpellSaveDC() }}</span>
+        <span class="casting-stat-sub font-medieval">8 + Prof + Mod</span>
+      </div>
+      <div class="casting-stat-box">
+        <span class="casting-stat-label font-medieval">Ataque de Magia</span>
+        <span class="casting-stat-value font-medieval">{{ getSpellAttackBonus() }}</span>
+        <span class="casting-stat-sub font-medieval">Prof + Mod</span>
+      </div>
+    </div>
+
+    <!-- Resumo dos Espaços de Magia -->
+    <div class="spells-slots-header medieval-border" *ngIf="getSpellSlotsInfo().length > 0">
+      <h3 class="section-title font-medieval" style="border-left: 3px solid var(--color-primary); padding-left: 8px; font-size: 1.4rem;">Espaços de Magia</h3>
+      <div class="slots-badges-container">
+        <div class="slot-badge" *ngFor="let info of getSpellSlotsInfo()">
+          <span class="slot-badge-label font-medieval">{{ info.classe }}:</span>
+          <span class="slot-badge-value font-medieval">
+            {{ info.espacos }} slots (Nível {{ info.nivelMagia }})
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container das Listas (Truques / Magias) -->
+    <div class="spells-grid-container">
+      
+      <!-- Coluna da Esquerda: Truques (Nível 0) -->
+      <div class="spells-category-section">
+        <h2 class="section-title font-medieval">Truques (Cantrips)</h2>
+        <div class="spells-list">
+          <div class="spell-card-item medieval-border" 
+               *ngFor="let magia of getSpellsByLevel(0)" 
+               (click)="openSpellModal(magia)"
+               title="Clique para ver os detalhes do truque">
+            <div class="spell-card-header">
+              <span class="spell-icon">✦</span>
+              <h3 class="spell-name font-medieval">{{ magia.nome }}</h3>
+              <span class="spell-level-badge font-medieval">Nível {{ magia.nivel }}</span>
+            </div>
+            <p class="spell-card-description">{{ magia.descricao }}</p>
+          </div>
+          <div class="no-spells-msg" *ngIf="getSpellsByLevel(0).length === 0">
+            Nenhum truque conhecido.
+          </div>
+        </div>
+      </div>
+
+      <!-- Coluna da Direita: Magias (Nível 1+) -->
+      <div class="spells-category-section">
+        <h2 class="section-title font-medieval">Magias</h2>
+        <div class="spells-list">
+          <div class="spell-card-item medieval-border" 
+               *ngFor="let magia of getSpellsLevel1Plus()" 
+               (click)="openSpellModal(magia)"
+               title="Clique para ver os detalhes da magia">
+            <div class="spell-card-header">
+              <span class="spell-icon">🔥</span>
+              <h3 class="spell-name font-medieval">{{ magia.nome }}</h3>
+              <span class="spell-level-badge font-medieval">Nível {{ magia.nivel }}</span>
+            </div>
+            <p class="spell-card-description">{{ magia.descricao }}</p>
+          </div>
+          <div class="no-spells-msg" *ngIf="getSpellsLevel1Plus().length === 0">
+            Nenhuma magia de nível 1 ou superior conhecida.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes da Magia -->
+  <div class="trait-modal-overlay" *ngIf="selectedSpell" (click)="closeSpellModal()">
+    <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeSpellModal()">✕</button>
+      <div class="modal-header">
+        <span class="trait-icon">✦</span>
+        <h3 class="modal-title font-medieval">{{ selectedSpell.nome }}</h3>
+        <span class="spell-level-badge font-medieval" style="margin-left: auto;">Nível {{ selectedSpell.nivel }}</span>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description" [innerHTML]="formatSpellDescription(selectedSpell.descricao)"></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Container de Loading -->
+<div class="loading-container font-medieval" *ngIf="!character">
+  <div class="spinner"></div>
+  Buscando registros na guilda de aventureiros...
+</div>

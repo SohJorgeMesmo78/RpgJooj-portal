@@ -247,4 +247,114 @@ export class CharacterService {
       catchError(() => of([]))
     );
   }
+
+  getCharacterDetalhes(id: string): Observable<Character | undefined> {
+    return this.http.get<any>(`${this.apiUrl}/personagens/detalhes?codigo=${id}`).pipe(
+      map(item => {
+        if (!item) return undefined;
+        return {
+          id: item.codigo,
+          name: item.nome,
+          avatarUrl: item.base64Imagem ? `data:image/png;base64,${item.base64Imagem}` : 'assets/images/placeholder.png',
+          race: item.raca,
+          classAndSubclass: item.classAndSubclass,
+          history: '',
+          sheet: this.createEmptySheet(item.nivel, item.alinhamento, item),
+          bonds: []
+        };
+      }),
+      catchError(() => of(undefined))
+    );
+  }
+
+  getCharacterHistoria(id: string): Observable<Character | undefined> {
+    return this.http.get<any>(`${this.apiUrl}/personagens/historia?codigo=${id}`).pipe(
+      map(item => {
+        if (!item) return undefined;
+        const fullHistory = item.historias && item.historias.length > 0 
+          ? item.historias[0].texto 
+          : 'História em desenvolvimento. Em breve novos registros.';
+        return {
+          id: item.codigo,
+          name: item.nome,
+          avatarUrl: 'assets/images/placeholder.png',
+          race: '',
+          classAndSubclass: '',
+          history: fullHistory,
+          sheet: this.createEmptySheet(1, 'Não definido', {}),
+          bonds: [],
+          chapters: item.historias || []
+        };
+      }),
+      catchError(() => of(undefined))
+    );
+  }
+
+  getCharacterRaca(id: string): Observable<Character | undefined> {
+    return this.http.get<any>(`${this.apiUrl}/personagens/raca?codigo=${id}`).pipe(
+      map(item => {
+        if (!item) return undefined;
+        return {
+          id: item.codigo,
+          name: item.nome,
+          avatarUrl: 'assets/images/placeholder.png',
+          race: item.raca,
+          classAndSubclass: '',
+          history: '',
+          sheet: this.createEmptySheet(1, 'Não definido', {}),
+          bonds: [],
+          racaInfo: item.racaInfo,
+          tracosRaciais: item.tracosRaciais || []
+        };
+      }),
+      catchError(() => of(undefined))
+    );
+  }
+
+  getCharacterClasse(id: string): Observable<Character | undefined> {
+    return this.http.get<any>(`${this.apiUrl}/personagens/classe?codigo=${id}`).pipe(
+      map(item => {
+        if (!item) return undefined;
+        return {
+          id: item.codigo,
+          name: item.nome,
+          avatarUrl: 'assets/images/placeholder.png',
+          race: '',
+          classAndSubclass: '',
+          history: '',
+          sheet: this.createEmptySheet(1, 'Não definido', {}),
+          bonds: [],
+          classes: item.classes || []
+        };
+      }),
+      catchError(() => of(undefined))
+    );
+  }
+
+  getCharacterFicha(id: string): Observable<Character | undefined> {
+    return this.http.get<any>(`${this.apiUrl}/personagens/ficha?codigo=${id}`).pipe(
+      map(item => {
+        if (!item) return undefined;
+        return {
+          id: item.codigo,
+          name: item.nome,
+          avatarUrl: 'assets/images/placeholder.png',
+          race: item.raca,
+          classAndSubclass: item.classAndSubclass,
+          history: '',
+          sheet: this.createEmptySheet(item.nivel, item.alinhamento, item),
+          bonds: [],
+          classes: item.classes || [],
+          racaInfo: item.racaInfo,
+          tracosRaciais: item.tracosRaciais || [],
+          pericias: item.pericias || [],
+          acoes: item.acoes || [],
+          proficiencias: item.proficiencias || [],
+          idiomas: item.idiomas || [],
+          magias: item.magias || []
+        };
+      }),
+      catchError(() => of(undefined))
+    );
+  }
 }

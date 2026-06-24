@@ -1,4 +1,4 @@
-<div class="detail-container animate-fade-in" *ngIf="character; else notFound">
+<div class="detail-container animate-fade-in" *ngIf="character; else loadingOrNotFound">
   <!-- Top WIP Banner -->
   <div class="screen-wip-banner">
     <span class="wip-badge-mini">WIP</span> Visualização Parcial do Personagem - Algumas seções em desenvolvimento.
@@ -197,5 +197,13 @@
     <a [routerLink]="['/']" class="back-link">
       <span class="arrow">➔</span> Voltar para a Taverna
     </a>
+  </div>
+</ng-template>
+
+<!-- Loading / Not Found Router Template -->
+<ng-template #loadingOrNotFound>
+  <div class="loading-container font-medieval" *ngIf="isLoading; else notFound">
+    <div class="spinner"></div>
+    Consultando a mesa redonda sobre o aventureiro...
   </div>
 </ng-template>

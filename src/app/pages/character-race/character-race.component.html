@@ -1,0 +1,69 @@
+<div class="race-page-container animate-fade-in" *ngIf="character">
+  <!-- Header de Navegação -->
+  <div class="navigation-header">
+    <a [routerLink]="['/', charId]" class="back-link">
+      <span class="arrow">➔</span> Voltar para Detalhes
+    </a>
+    <div class="page-title-badge font-medieval">INFORMAÇÕES DE RAÇA</div>
+  </div>
+
+  <!-- Placa de Identificação da Raça (Visual Premium) -->
+  <header class="race-banner medieval-border">
+    <div class="banner-left">
+      <span class="banner-category font-medieval">Raça do Personagem</span>
+      <h1 class="race-name font-medieval">{{ character?.racaInfo?.nome || character?.race }}</h1>
+    </div>
+    <div class="banner-right">
+      <div class="race-meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Tipo de Criatura</span>
+          <span class="meta-value" [title]="character?.racaInfo?.tipoCriatura || ''">
+            {{ character?.racaInfo?.tipoCriatura ? (character?.racaInfo?.tipoCriatura?.split('.')?.[0]) : 'Humanóide' }}
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Tamanho</span>
+          <span class="meta-value">{{ character?.racaInfo?.tamanho || 'Médio' }}</span>
+        </div>
+        <div class="meta-item clickable-speed" (click)="toggleSpeedUnit()" title="Clique para alternar metros/pés">
+          <span class="meta-label">Deslocamento</span>
+          <span class="meta-value font-medieval">
+            {{ getSpeedDisplay() }}
+            <span class="unit-toggle-hint">({{ exibirEmFeet ? 'ft' : 'm' }})</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Descrição da Lore -->
+  <section class="lore-section medieval-border" *ngIf="character?.racaInfo?.descricao">
+    <h2 class="section-title font-medieval">História & Fisiologia</h2>
+    <p class="lore-text">{{ character?.racaInfo?.descricao }}</p>
+  </section>
+
+  <!-- Traços e Habilidades -->
+  <section class="traits-section">
+    <h2 class="section-title font-medieval">Habilidades & Traços Raciais</h2>
+    <div class="traits-grid">
+      <div class="trait-card medieval-border animate-fade-in" *ngFor="let trait of character?.tracosRaciais">
+        <div class="trait-header">
+          <span class="trait-icon">✦</span>
+          <h3 class="trait-name font-medieval">{{ trait.nome }}</h3>
+        </div>
+        <div class="trait-body">
+          <p class="trait-desc">{{ trait.descricao }}</p>
+        </div>
+      </div>
+      <div class="no-traits-card medieval-border" *ngIf="!character?.tracosRaciais || character?.tracosRaciais?.length === 0">
+        Nenhum traço racial registrado no grimório.
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Container de Loading -->
+<div class="loading-container font-medieval" *ngIf="!character">
+  <div class="spinner"></div>
+  Consultando o conselho de anciãos sobre a linhagem...
+</div>

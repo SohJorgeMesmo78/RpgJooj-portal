@@ -1,0 +1,91 @@
+<div class="class-page-container animate-fade-in" *ngIf="character">
+  <!-- Header de Navegação -->
+  <div class="navigation-header">
+    <a [routerLink]="['/', charId]" class="back-link">
+      <span class="arrow">➔</span> Voltar para Detalhes
+    </a>
+    <div class="page-title-badge font-medieval">INFORMAÇÕES DE CLASSE</div>
+  </div>
+
+  <div *ngFor="let classe of character?.classes" class="class-section">
+    <!-- Banner da Classe -->
+    <header class="class-banner medieval-border">
+      <div class="banner-left">
+        <span class="banner-category font-medieval">Classe & Subclasse</span>
+        <h1 class="class-name font-medieval">
+          {{ classe.nome }}
+          <span class="subclass-name" *ngIf="classe.subclasse">({{ classe.subclasse }})</span>
+        </h1>
+        <span class="class-level-badge font-medieval">Nível {{ classe.nivel }}</span>
+      </div>
+
+      <div class="banner-right">
+        <div class="hit-die-container">
+          <div class="dice-shape font-medieval" title="Dado de Vida">
+            <span class="dice-label">Dado Vida</span>
+            <span class="dice-value">{{ classe.dadoVida }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Painel de Status de Progresso -->
+    <section class="progression-section" *ngIf="classe.progresso">
+      <h2 class="section-title font-medieval">Estatísticas do Nível Atual</h2>
+      <div class="stats-grid">
+        <div class="stat-badge-card medieval-border">
+          <span class="stat-label">Bônus de Proficiência</span>
+          <span class="stat-value font-medieval">+{{ classe.progresso.bonusProficiencia }}</span>
+        </div>
+        <div class="stat-badge-card medieval-border">
+          <span class="stat-label">Truques Conhecidos</span>
+          <span class="stat-value font-medieval">{{ classe.progresso.truquesConhecidos }}</span>
+        </div>
+        <div class="stat-badge-card medieval-border">
+          <span class="stat-label">Magias Conhecidas</span>
+          <span class="stat-value font-medieval">{{ classe.progresso.magiasConhecidas }}</span>
+        </div>
+        <div class="stat-badge-card medieval-border">
+          <span class="stat-label">Espaços de Magia</span>
+          <span class="stat-value font-medieval">{{ classe.progresso.espacosMagia }}</span>
+        </div>
+        <div class="stat-badge-card medieval-border">
+          <span class="stat-label">Nível de Magia</span>
+          <span class="stat-value font-medieval">{{ formatMagicLevel(classe.progresso.nivelMagia) }}</span>
+        </div>
+        <div class="stat-badge-card medieval-border">
+          <span class="stat-label">Invocações Conhecidas</span>
+          <span class="stat-value font-medieval">{{ classe.progresso.invocacoesConhecidas }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Características Desbloqueadas (Timeline) -->
+    <section class="features-section">
+      <h2 class="section-title font-medieval">Características de Classe Desbloqueadas</h2>
+
+      <div class="timeline" *ngIf="classe.caracteristicas && classe.caracteristicas.length > 0">
+        <div class="timeline-item animate-fade-in" *ngFor="let feat of classe.caracteristicas">
+          <div class="timeline-node font-medieval">Lvl {{ feat.nivel }}</div>
+          <div class="timeline-content medieval-border">
+            <h3 class="feature-title font-medieval">
+              {{ feat.nome }}
+              <span class="feature-level-indicator">Adquirido no Nível {{ feat.nivel }}</span>
+            </h3>
+            <p class="feature-desc">{{ feat.descricao }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-features-card medieval-border" *ngIf="!classe.caracteristicas || classe.caracteristicas.length === 0">
+        Nenhuma característica de classe registrada até o momento.
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Container de Loading -->
+<div class="loading-container font-medieval" *ngIf="!character">
+  <div class="spinner"></div>
+  Folheando grimórios em busca dos registros de treinamento...
+</div>

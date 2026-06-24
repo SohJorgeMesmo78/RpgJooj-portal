@@ -25,7 +25,7 @@ export class CharacterHistoryComponent implements OnInit, OnDestroy {
     this.routeSub = this.route.params.subscribe(params => {
       const charName = params['name'];
       if (charName) {
-        this.characterService.getCharacterById(charName).subscribe(char => {
+        this.characterService.getCharacterHistoria(charName).subscribe(char => {
           this.character = char;
           this.activeChapterIndex = 0;
         });

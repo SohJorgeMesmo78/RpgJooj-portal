@@ -13,6 +13,7 @@ import { Subscription } from 'rxjs';
 })
 export class CharacterDetailComponent implements OnInit, OnDestroy {
   character: Character | undefined;
+  isLoading: boolean = true;
   private routeSub: Subscription | undefined;
 
   constructor(
@@ -25,13 +26,20 @@ export class CharacterDetailComponent implements OnInit, OnDestroy {
     this.routeSub = this.route.params.subscribe(params => {
       const charId = params['name']; // Using ':name' parameter mapping from routes
       if (charId) {
-        this.characterService.getCharacterById(charId).subscribe(char => {
-          if (char) {
-            const modDex = Math.floor((char.sheet.attributes.dexterity - 10) / 2);
-            char.sheet.ac = 10 + modDex;
-            char.sheet.hp = char.sheet.vidaMaxima ?? 10;
+        this.isLoading = true;
+        this.characterService.getCharacterDetalhes(charId).subscribe({
+          next: (char) => {
+            if (char) {
+              const modDex = Math.floor((char.sheet.attributes.dexterity - 10) / 2);
+              char.sheet.ac = 10 + modDex;
+              char.sheet.hp = char.sheet.vidaMaxima ?? 10;
+            }
+            this.character = char;
+            this.isLoading = false;
+          },
+          error: () => {
+            this.isLoading = false;
           }
-          this.character = char;
         });
       }
     });
