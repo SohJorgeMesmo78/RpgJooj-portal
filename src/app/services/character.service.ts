@@ -43,6 +43,13 @@ export interface ClasseProgressoInfo {
   invocacoesConhecidas: number;
 }
 
+export interface CaracteristicaClasseInfo {
+  id: number;
+  nivel: number;
+  nome: string;
+  descricao: string;
+}
+
 export interface ClasseInfo {
   nome: string;
   subclasse?: string;
@@ -50,7 +57,9 @@ export interface ClasseInfo {
   deslocamento: number;
   nivel: number;
   progresso?: ClasseProgressoInfo;
+  caracteristicas?: CaracteristicaClasseInfo[];
 }
+
 
 export interface RacaInfo {
   nome: string;
