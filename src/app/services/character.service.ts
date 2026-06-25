@@ -45,14 +45,18 @@ export interface ClasseProgressoInfo {
 
 export interface CaracteristicaClasseInfo {
   id: number;
+  idClasse?: number;
   nivel: number;
   nome: string;
   descricao: string;
 }
 
 export interface ClasseInfo {
+  idClasse: number;
+  idSubclasse?: number;
   nome: string;
   subclasse?: string;
+  subclasseEscolha?: string;
   dadoVida: string;
   deslocamento: number;
   nivel: number;

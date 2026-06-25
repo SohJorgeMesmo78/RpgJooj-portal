@@ -1568,3 +1568,80 @@
   border-radius: 4px;
   text-shadow: 0 0 4px rgba(255, 215, 0, 0.25);
 }
+
+/* Painéis Colapsáveis (Raça, Classe, Subclasse) */
+.collapsible-group {
+  background: rgba(24, 24, 28, 0.95);
+  border-radius: var(--border-radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: var(--transition);
+
+  &.expanded {
+    border-color: rgba(255, 170, 0, 0.35);
+  }
+
+  &:hover {
+    border-color: rgba(255, 170, 0, 0.25);
+  }
+}
+
+.collapsible-header {
+  width: 100%;
+  background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+  border: none;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-primary);
+  font-size: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  border-bottom: 1px solid rgba(255, 170, 0, 0.15);
+
+  .arrow {
+    font-size: 0.85rem;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    color: var(--color-primary);
+  }
+
+  .title {
+    flex-grow: 1;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 4px rgba(255, 170, 0, 0.15);
+  }
+
+  .type-badge {
+    font-size: 0.75rem;
+    background: rgba(255, 170, 0, 0.08);
+    border: 1px solid rgba(255, 170, 0, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--color-primary);
+    text-shadow: none;
+    letter-spacing: 0.5px;
+  }
+
+  &:hover {
+    color: #fff;
+    text-shadow: 0 0 8px var(--color-primary);
+    background: linear-gradient(135deg, #22222a 0%, #16161c 100%);
+
+    .arrow {
+      color: #fff;
+      text-shadow: 0 0 8px var(--color-primary);
+    }
+  }
+}
+
+.collapsible-content {
+  padding: 24px;
+  background: rgba(18, 18, 20, 0.45);
+}
+

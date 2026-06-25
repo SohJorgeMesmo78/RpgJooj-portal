@@ -48,6 +48,27 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   toastType: 'success' | 'error' = 'success';
   private toastTimeout: any = null;
   
+  // Collapsible sections state (starts closed by default)
+  expandedSections: { [key: string]: boolean } = {};
+
+  toggleSection(key: string): void {
+    this.expandedSections[key] = !this.expandedSections[key];
+  }
+
+  isSectionExpanded(key: string): boolean {
+    return !!this.expandedSections[key];
+  }
+
+  getClassFeatures(classe: any): any[] {
+    if (!classe || !classe.caracteristicas) return [];
+    return classe.caracteristicas.filter((c: any) => c.idClasse === classe.idClasse);
+  }
+
+  getSubclassFeatures(classe: any): any[] {
+    if (!classe || !classe.caracteristicas) return [];
+    return classe.caracteristicas.filter((c: any) => c.idClasse === classe.idSubclasse);
+  }
+
   private routeSub: Subscription | undefined;
 
   openTraitModal(trait: any): void {

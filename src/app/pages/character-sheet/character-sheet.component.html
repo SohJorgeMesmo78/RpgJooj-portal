@@ -102,11 +102,11 @@
     <button class="tab-button" [class.active]="activeTab === 'actions'" (click)="activeTab = 'actions'">
       Ações
     </button>
-    <button class="tab-button" [class.active]="activeTab === 'traits'" (click)="activeTab = 'traits'">
-      Traços Raciais
-    </button>
     <button class="tab-button" [class.active]="activeTab === 'spells'" (click)="activeTab = 'spells'">
       Magias
+    </button>
+    <button class="tab-button" [class.active]="activeTab === 'features'" (click)="activeTab = 'features'">
+      Características
     </button>
   </div>
 
@@ -384,40 +384,6 @@
     </div>
   </div>
 
-  <!-- Aba 3: Traços Raciais -->
-  <div class="traits-panel animate-fade-in" *ngIf="activeTab === 'traits'">
-    <!-- Visão Geral da Raça -->
-    <div class="race-overview medieval-border" *ngIf="character.racaInfo">
-      <div class="race-header">
-        <h2 class="race-title font-medieval">{{ character.racaInfo.nome }}</h2>
-        <div class="race-meta">
-          <span class="meta-badge"><strong>Tipo:</strong> {{ character.racaInfo.tipoCriatura }}</span>
-          <span class="meta-badge"><strong>Tamanho:</strong> {{ character.racaInfo.tamanho }}</span>
-          <span class="meta-badge"><strong>Deslocamento Base:</strong> {{ getSpeedDisplay() }}</span>
-        </div>
-      </div>
-      <p class="race-description">{{ character.racaInfo.descricao }}</p>
-    </div>
-
-    <!-- Lista de Traços Raciais -->
-    <div class="traits-list-container">
-      <h3 class="section-title font-medieval">Habilidades de Raça</h3>
-      
-      <div class="traits-grid">
-        <div class="trait-card" *ngFor="let trait of character.tracosRaciais" (click)="openTraitModal(trait)" title="Clique para ver a descrição completa">
-          <div class="trait-header">
-            <span class="trait-icon">✦</span>
-            <h4 class="trait-name font-medieval">{{ trait.nome }}</h4>
-          </div>
-          <p class="trait-description">{{ trait.descricao }}</p>
-        </div>
-        
-        <div class="no-traits-card medieval-border" *ngIf="!character.tracosRaciais || character.tracosRaciais.length === 0">
-          <p>Nenhuma habilidade ou traço racial registrado.</p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Modal de Detalhes do Traço Racial -->
   <div class="trait-modal-overlay" *ngIf="selectedTrait" (click)="closeTraitModal()">
@@ -535,6 +501,107 @@
 
     </div>
   </div>
+
+  <!-- Aba 5: Características (Raça, Classe e Subclasse) -->
+  <div class="traits-panel animate-fade-in" *ngIf="activeTab === 'features'">
+    <!-- Seção 1: Raça (Sempre em cima) -->
+    <div class="collapsible-group medieval-border" [class.expanded]="isSectionExpanded('race')">
+      <button class="collapsible-header font-medieval" (click)="toggleSection('race')">
+        <span class="arrow">{{ isSectionExpanded('race') ? '▼' : '►' }}</span>
+        <span class="title">{{ character.racaInfo?.nome || character.race }}</span>
+        <span class="type-badge font-medieval">Raça</span>
+      </button>
+      <div class="collapsible-content animate-fade-in" *ngIf="isSectionExpanded('race')">
+        <!-- Visão Geral da Raça -->
+        <div class="race-overview medieval-border" *ngIf="character.racaInfo" style="margin-bottom: 20px;">
+          <div class="race-header">
+            <h2 class="race-title font-medieval">{{ character.racaInfo.nome }}</h2>
+            <div class="race-meta">
+              <span class="meta-badge"><strong>Tipo:</strong> {{ character.racaInfo.tipoCriatura }}</span>
+              <span class="meta-badge"><strong>Tamanho:</strong> {{ character.racaInfo.tamanho }}</span>
+              <span class="meta-badge"><strong>Deslocamento Base:</strong> {{ getSpeedDisplay() }}</span>
+            </div>
+          </div>
+          <p class="race-description">{{ character.racaInfo.descricao }}</p>
+        </div>
+
+        <!-- Lista de Traços Raciais -->
+        <div class="traits-list-container">
+          <div class="traits-grid">
+            <div class="trait-card" *ngFor="let trait of character.tracosRaciais" (click)="openTraitModal(trait)" title="Clique para ver a descrição completa">
+              <div class="trait-header">
+                <span class="trait-icon">✦</span>
+                <h4 class="trait-name font-medieval">{{ trait.nome }}</h4>
+              </div>
+              <p class="trait-description">{{ trait.descricao }}</p>
+            </div>
+            
+            <div class="no-traits-card medieval-border" *ngIf="!character.tracosRaciais || character.tracosRaciais.length === 0" style="grid-column: 1 / -1;">
+              <p>Nenhuma habilidade ou traço racial registrado.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seções de Classe & Subclasse -->
+    <ng-container *ngFor="let classe of character.classes; let idx = index">
+      <!-- Seção da Classe Base -->
+      <div class="collapsible-group medieval-border" [class.expanded]="isSectionExpanded('class_' + idx)">
+        <button class="collapsible-header font-medieval" (click)="toggleSection('class_' + idx)">
+          <span class="arrow">{{ isSectionExpanded('class_' + idx) ? '▼' : '►' }}</span>
+          <span class="title">{{ classe.nome }}</span>
+          <span class="type-badge font-medieval">Classe</span>
+        </button>
+        <div class="collapsible-content animate-fade-in" *ngIf="isSectionExpanded('class_' + idx)">
+          <div class="traits-list-container">
+            <div class="traits-grid">
+              <div class="trait-card" *ngFor="let feat of getClassFeatures(classe)" (click)="openTraitModal(feat)" title="Clique para ver a descrição completa">
+                <div class="trait-header">
+                  <span class="trait-icon">🔮</span>
+                  <h4 class="trait-name font-medieval">{{ feat.nome }}</h4>
+                  <span class="feat-level-badge font-medieval" style="margin-left: auto; font-size: 0.8rem; background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2); padding: 2px 6px; border-radius: 4px; color: var(--color-primary);">Lvl {{ feat.nivel }}</span>
+                </div>
+                <p class="trait-description">{{ feat.descricao }}</p>
+              </div>
+
+              <div class="no-traits-card medieval-border" *ngIf="getClassFeatures(classe).length === 0" style="grid-column: 1 / -1;">
+                <p>Nenhuma característica de classe desbloqueada para {{ classe.nome }} no nível {{ classe.nivel }}.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção da Subclasse (se houver) -->
+      <div class="collapsible-group medieval-border" *ngIf="classe.subclasse" [class.expanded]="isSectionExpanded('subclass_' + idx)">
+        <button class="collapsible-header font-medieval" (click)="toggleSection('subclass_' + idx)">
+          <span class="arrow">{{ isSectionExpanded('subclass_' + idx) ? '▼' : '►' }}</span>
+          <span class="title">{{ classe.subclasse }}{{ classe.subclasseEscolha ? ' (' + classe.subclasseEscolha + ')' : '' }}</span>
+          <span class="type-badge font-medieval">Subclasse</span>
+        </button>
+        <div class="collapsible-content animate-fade-in" *ngIf="isSectionExpanded('subclass_' + idx)">
+          <div class="traits-list-container">
+            <div class="traits-grid">
+              <div class="trait-card" *ngFor="let feat of getSubclassFeatures(classe)" (click)="openTraitModal(feat)" title="Clique para ver a descrição completa">
+                <div class="trait-header">
+                  <span class="trait-icon">🔮</span>
+                  <h4 class="trait-name font-medieval">{{ feat.nome }}</h4>
+                  <span class="feat-level-badge font-medieval" style="margin-left: auto; font-size: 0.8rem; background: rgba(255, 170, 0, 0.08); border: 1px solid rgba(255, 170, 0, 0.2); padding: 2px 6px; border-radius: 4px; color: var(--color-primary);">Lvl {{ feat.nivel }}</span>
+                </div>
+                <p class="trait-description">{{ feat.descricao }}</p>
+              </div>
+
+              <div class="no-traits-card medieval-border" *ngIf="getSubclassFeatures(classe).length === 0" style="grid-column: 1 / -1;">
+                <p>Nenhuma característica de subclasse desbloqueada para {{ classe.subclasse }} no nível {{ classe.nivel }}.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
 
   </div>
 

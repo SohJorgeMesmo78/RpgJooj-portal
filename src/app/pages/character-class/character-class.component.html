@@ -14,7 +14,9 @@
         <span class="banner-category font-medieval">Classe & Subclasse</span>
         <h1 class="class-name font-medieval">
           {{ classe.nome }}
-          <span class="subclass-name" *ngIf="classe.subclasse">({{ classe.subclasse }})</span>
+          <span class="subclass-name" *ngIf="classe.subclasse">
+            ({{ classe.subclasse }}{{ classe.subclasseEscolha ? ' - ' + classe.subclasseEscolha : '' }})
+          </span>
         </h1>
         <span class="class-level-badge font-medieval">Nível {{ classe.nivel }}</span>
       </div>
