@@ -1,4 +1,5 @@
-<div class="sheet-container animate-fade-in" *ngIf="character">
+<ng-container *ngIf="character">
+  <div class="sheet-container animate-fade-in">
   <!-- Header de Navegação -->
   <div class="navigation-header">
     <a [routerLink]="['/', charId]" class="back-link">
@@ -39,7 +40,7 @@
     <!-- CA Escudo -->
     <div class="combat-stat-box ca-box">
       <div class="shield-icon">
-        <span class="stat-value font-medieval">{{ 10 + getModifier(character.sheet.attributes.dexterity) }}</span>
+        <span class="stat-value font-medieval">{{ getClasseArmadura() }}</span>
       </div>
       <span class="stat-label font-medieval">Armadura (CA)</span>
     </div>
@@ -243,6 +244,71 @@
                 {{ character.idiomas.join(', ') }}
               </span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Equipamentos e Inventário -->
+      <section class="equipamentos-section" style="margin-top: 24px;">
+        <h2 class="section-title font-medieval">Equipamentos & Inventário</h2>
+
+        <!-- Carteira de Moedas D&D -->
+        <div class="medieval-coins-container font-medieval">
+          <div class="coin-box copper-coin">
+            <span class="coin-label">PC</span>
+            <span class="coin-value">{{ character.pecaCobre ?? 0 }}</span>
+          </div>
+          <div class="coin-box silver-coin">
+            <span class="coin-label">PP</span>
+            <span class="coin-value">{{ character.pecaPrata ?? 0 }}</span>
+          </div>
+          <div class="coin-box electrum-coin">
+            <span class="coin-label">PE</span>
+            <span class="coin-value">{{ character.pecaElectro ?? 0 }}</span>
+          </div>
+          <div class="coin-box gold-coin">
+            <span class="coin-label">PO</span>
+            <span class="coin-value">{{ character.pecaOuro ?? 0 }}</span>
+          </div>
+          <div class="coin-box platinum-coin">
+            <span class="coin-label">PL</span>
+            <span class="coin-value">{{ character.pecaPlatina ?? 0 }}</span>
+          </div>
+        </div>
+
+        <div class="equipamentos-card medieval-border">
+          <div class="equipamentos-list" *ngIf="character.equipamentos && character.equipamentos.length > 0">
+            <div class="equipamento-row" *ngFor="let pe of character.equipamentos" [class.equipado-item]="pe.isEquipado">
+              <div class="equipamento-info" (click)="openEquipamentoModal(pe)" title="Clique para ver detalhes">
+                <span class="equipamento-icon">
+                  <span *ngIf="pe.equipamento.tipoEquipamento === 'Arma'">⚔️</span>
+                  <span *ngIf="pe.equipamento.tipoEquipamento === 'Armadura'">🛡️</span>
+                  <span *ngIf="pe.equipamento.tipoEquipamento === 'Escudo'">🛡️</span>
+                  <span *ngIf="pe.equipamento.tipoEquipamento === 'Outro'">🎒</span>
+                </span>
+                <div class="equipamento-details">
+                  <span class="equipamento-name">{{ pe.equipamento.nome }}</span>
+                  <div class="equipamento-meta">
+                    <span class="equipamento-sub" *ngIf="pe.equipamento.peso">{{ pe.equipamento.peso }} kg</span>
+                    <span class="equipamento-price-badge font-medieval" *ngIf="pe.equipamento.preco">💰 {{ pe.equipamento.preco }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="equipamento-actions" *ngIf="pe.equipamento.tipoEquipamento !== 'Outro'">
+                <button 
+                  class="equip-btn font-medieval" 
+                  [class.is-equipped]="pe.isEquipado" 
+                  (click)="toggleEquip(pe)">
+                  {{ pe.isEquipado ? 'Desequipar' : 'Equipar' }}
+                </button>
+              </div>
+              <div class="equipamento-actions-none" *ngIf="pe.equipamento.tipoEquipamento === 'Outro'">
+                <span class="no-equipable-badge font-medieval">Geral</span>
+              </div>
+            </div>
+          </div>
+          <div class="no-items-msg" *ngIf="!character.equipamentos || character.equipamentos.length === 0">
+            Nenhum item no inventário.
           </div>
         </div>
       </section>
@@ -470,6 +536,8 @@
     </div>
   </div>
 
+  </div>
+
   <!-- Modal de Detalhes da Magia -->
   <div class="trait-modal-overlay" *ngIf="selectedSpell" (click)="closeSpellModal()">
     <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
@@ -485,7 +553,70 @@
     </div>
   </div>
 
-</div>
+  <!-- Modal de Detalhes do Equipamento -->
+  <div class="trait-modal-overlay" *ngIf="selectedEquipamento" (click)="closeEquipamentoModal()">
+    <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+      <button class="modal-close-btn" (click)="closeEquipamentoModal()">✕</button>
+      <div class="modal-header">
+        <span class="trait-icon">
+          <span *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Arma'">⚔️</span>
+          <span *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Armadura'">🛡️</span>
+          <span *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Escudo'">🛡️</span>
+          <span *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Outro'">🎒</span>
+        </span>
+        <h3 class="modal-title font-medieval">{{ selectedEquipamento.equipamento.nome }}</h3>
+      </div>
+      <div class="modal-body">
+        <div class="equipamento-modal-stats-grid">
+          <div class="equipamento-stat-badge"><span class="badge-lbl">Tipo:</span> {{ selectedEquipamento.equipamento.tipoEquipamento }}</div>
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.peso"><span class="badge-lbl">Peso:</span> {{ selectedEquipamento.equipamento.peso }} kg</div>
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.preco"><span class="badge-lbl">Preço:</span> {{ selectedEquipamento.equipamento.preco }}</div>
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.proficienciaRequerida"><span class="badge-lbl">Proficiência:</span> {{ selectedEquipamento.equipamento.proficienciaRequerida }}</div>
+          
+          <!-- Se Arma -->
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Arma'"><span class="badge-lbl">Dano:</span> {{ selectedEquipamento.equipamento.dano }} ({{ selectedEquipamento.equipamento.tipoDano }})</div>
+          
+          <!-- Se Armadura/Escudo -->
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Armadura'"><span class="badge-lbl">CA Base:</span> {{ selectedEquipamento.equipamento.classeArmadura }}</div>
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Escudo'"><span class="badge-lbl">Bônus CA:</span> +{{ selectedEquipamento.equipamento.modificadorClasseArmadura }}</div>
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Armadura' && selectedEquipamento.equipamento.permiteDestreza !== undefined"><span class="badge-lbl">Soma Destreza:</span> {{ selectedEquipamento.equipamento.permiteDestreza ? 'Sim' : 'Não' }}</div>
+          <div class="equipamento-stat-badge" *ngIf="selectedEquipamento.equipamento.tipoEquipamento === 'Armadura' && selectedEquipamento.equipamento.desvantagemFurtividade"><span class="badge-lbl">Furtividade:</span> Desvantagem</div>
+        </div>
+
+        <div class="equipamento-properties" *ngIf="selectedEquipamento.equipamento.propriedades && selectedEquipamento.equipamento.propriedades.length > 0" style="margin-top: 15px;">
+          <strong class="font-medieval" style="color: var(--color-primary);">Propriedades: </strong>
+          <span class="propriedade-tag" *ngFor="let prop of selectedEquipamento.equipamento.propriedades">{{ prop }}</span>
+        </div>
+
+        <p class="modal-description" style="margin-top: 20px;">{{ selectedEquipamento.equipamento.descricao || 'Nenhuma descrição detalhada.' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Substituição de Armadura -->
+  <div class="trait-modal-overlay" *ngIf="confirmArmaduraModalOpen">
+    <div class="trait-modal-content medieval-border animate-scale-in" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="trait-icon">🛡️</span>
+        <h3 class="modal-title font-medieval">Substituir Armadura?</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">{{ confirmArmaduraMessage }}</p>
+        <div class="modal-actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+          <button class="cancel-btn font-medieval" (click)="cancelSubstituteArmadura()">Cancelar</button>
+          <button class="confirm-btn font-medieval" (click)="confirmSubstituteArmadura()">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast flutuante medieval para notificações -->
+  <div class="medieval-toast-container" *ngIf="toastMessage" [class.toast-error]="toastType === 'error'" [class.toast-success]="toastType === 'success'">
+    <span class="toast-icon">{{ toastType === 'error' ? '⚠️' : '✨' }}</span>
+    <span class="toast-text font-medieval">{{ toastMessage }}</span>
+  </div>
+
+</ng-container>
 
 <!-- Container de Loading -->
 <div class="loading-container font-medieval" *ngIf="!character">

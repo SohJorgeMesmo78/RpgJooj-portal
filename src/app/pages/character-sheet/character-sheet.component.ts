@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { CharacterService, Character, PericiaInfo, AcaoInfo } from '../../services/character.service';
+import { CharacterService, Character, PericiaInfo, AcaoInfo, PersonagemEquipamentoInfo } from '../../services/character.service';
 
 export interface PericiaView {
   id: number;
@@ -34,31 +34,50 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   selectedTrait: any = null;
   selectedAction: any = null;
   selectedSpell: any = null;
+
+  // Equipamentos state
+  selectedEquipamento: any = null;
+  
+  // Confirmation Modal state
+  confirmArmaduraModalOpen = false;
+  pendingEquipId: number | null = null;
+  confirmArmaduraMessage = '';
+
+  // Custom Toast state
+  toastMessage: string | null = null;
+  toastType: 'success' | 'error' = 'success';
+  private toastTimeout: any = null;
   
   private routeSub: Subscription | undefined;
 
   openTraitModal(trait: any): void {
     this.selectedTrait = trait;
+    this.updateBodyScroll();
   }
 
   closeTraitModal(): void {
     this.selectedTrait = null;
+    this.updateBodyScroll();
   }
 
   openActionModal(action: any): void {
     this.selectedAction = action;
+    this.updateBodyScroll();
   }
 
   closeActionModal(): void {
     this.selectedAction = null;
+    this.updateBodyScroll();
   }
 
   openSpellModal(spell: any): void {
     this.selectedSpell = spell;
+    this.updateBodyScroll();
   }
 
   closeSpellModal(): void {
     this.selectedSpell = null;
+    this.updateBodyScroll();
   }
 
   getSpellSlotsInfo(): { classe: string, espacos: number, nivelMagia: number }[] {
@@ -337,6 +356,75 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
         baseActions.push(raioAction);
       }
     }
+
+    // Adiciona armas equipadas dinamicamente
+    if (this.character.equipamentos) {
+      const equippedWeapons = this.character.equipamentos.filter(
+        pe => pe.isEquipado && pe.equipamento.tipoEquipamento === 'Arma'
+      );
+
+      const modStr = this.getModifier(this.getAttrValueByPortugueseName('Força'));
+      const modDex = this.getModifier(this.getAttrValueByPortugueseName('Destreza'));
+      const prof = this.proficiencyBonus;
+
+      equippedWeapons.forEach((pe, index) => {
+        const eq = pe.equipamento;
+        const isFinesse = eq.propriedades.some(p => p.toLowerCase() === 'acuidade');
+        
+        // Escolhe o atributo de ataque
+        let atkAttr = 'FOR';
+        let atkMod = modStr;
+        if (isFinesse && modDex > modStr) {
+          atkAttr = 'DES';
+          atkMod = modDex;
+        }
+
+        const totalAtk = atkMod + prof;
+        const signedAtk = totalAtk >= 0 ? `+${totalAtk}` : `${totalAtk}`;
+
+        // Regra de Duas Armas (Dual Wielding)
+        // Se temos duas armas, a segunda (index 1) vai para a mão secundária (Ação Bônus)
+        const isSecondary = index === 1;
+        const actionType = isSecondary ? 'Ação Bônus' : 'Ação';
+        const displayName = isSecondary ? `${eq.nome} (Mão Secundária)` : eq.nome;
+
+        // Dano
+        let finalDmg = eq.dano || '1d4';
+        let dmgTooltip = `${eq.dano || '1d4'}`;
+
+        if (isSecondary) {
+          // Mão secundária não soma modificador positivo
+          if (atkMod < 0) {
+            finalDmg += `${atkMod}`;
+            dmgTooltip += ` - [${atkAttr}_UNSIG](${atkAttr})`;
+          }
+        } else {
+          // Mão primária soma modificador
+          if (atkMod > 0) {
+            finalDmg += `+${atkMod}`;
+            dmgTooltip += ` + [${atkAttr}_UNSIG](${atkAttr})`;
+          } else if (atkMod < 0) {
+            finalDmg += `${atkMod}`;
+            dmgTooltip += ` - [${atkAttr}_UNSIG](${atkAttr})`;
+          }
+        }
+
+        const weaponAction: AcaoInfo = {
+          id: 1000 + pe.id,
+          nome: displayName,
+          tipoAcao: actionType,
+          alcance: '1.5m / 5ft',
+          bonusAcerto: signedAtk,
+          dano: finalDmg,
+          tipoDano: eq.tipoDano || 'Impacto',
+          descricao: eq.descricao || `Ataque físico usando ${eq.nome}.`,
+          acertoTooltip: `[${atkAttr}](${atkAttr}) + [PROF](Proficiência)`,
+          danoTooltip: dmgTooltip
+        };
+
+        baseActions.push(weaponAction);
+      });
+    }
     
     return baseActions.filter(a => a.tipoAcao.toLowerCase() === type.toLowerCase());
   }
@@ -398,6 +486,133 @@ export class CharacterSheetComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
+    }
+  }
+
+  showToast(message: string, type: 'success' | 'error' = 'success'): void {
+    this.toastMessage = message;
+    this.toastType = type;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.toastMessage = null;
+    }, 4000);
+  }
+
+  openEquipamentoModal(pe: any): void {
+    this.selectedEquipamento = pe;
+    this.updateBodyScroll();
+  }
+
+  closeEquipamentoModal(): void {
+    this.selectedEquipamento = null;
+    this.updateBodyScroll();
+  }
+
+  getClasseArmadura(): number {
+    if (!this.character) return 10;
+    
+    const armadura = this.character.equipamentos?.find(
+      pe => pe.isEquipado && pe.equipamento.tipoEquipamento === 'Armadura'
+    );
+    
+    const escudo = this.character.equipamentos?.find(
+      pe => pe.isEquipado && pe.equipamento.tipoEquipamento === 'Escudo'
+    );
+
+    const modDex = this.getModifier(this.getAttrValueByPortugueseName('Destreza'));
+    let ca = 10;
+
+    if (armadura) {
+      ca = armadura.equipamento.classeArmadura ?? 10;
+      if (armadura.equipamento.permiteDestreza) {
+        ca += modDex;
+      }
+    } else {
+      ca = 10 + modDex;
+    }
+
+    if (escudo) {
+      ca += escudo.equipamento.modificadorClasseArmadura ?? 2;
+    }
+
+    return ca;
+  }
+
+  toggleEquip(pe: PersonagemEquipamentoInfo): void {
+    if (pe.isEquipado) {
+      this.desequipar(pe);
+    } else {
+      this.equipar(pe);
+    }
+  }
+
+  equipar(pe: PersonagemEquipamentoInfo, confirm: boolean = false): void {
+    if (!this.character) return;
+    this.charService.equiparEquipamento(this.charId, pe.id, confirm).subscribe({
+      next: (res) => {
+        if (res.requiresConfirmation) {
+          this.pendingEquipId = pe.id;
+          this.confirmArmaduraMessage = res.message;
+          this.confirmArmaduraModalOpen = true;
+          this.updateBodyScroll();
+        } else {
+          this.showToast(res.message || 'Item equipado com sucesso.', 'success');
+          this.loadCharacterData();
+        }
+      },
+      error: (err) => {
+        const errorMsg = err.error?.message || 'Erro ao equipar item.';
+        this.showToast(errorMsg, 'error');
+      }
+    });
+  }
+
+  desequipar(pe: PersonagemEquipamentoInfo): void {
+    if (!this.character) return;
+    this.charService.desequiparEquipamento(this.charId, pe.id).subscribe({
+      next: (res) => {
+        this.showToast(res.message || 'Item desequipado com sucesso.', 'success');
+        this.loadCharacterData();
+      },
+      error: (err) => {
+        const errorMsg = err.error?.message || 'Erro ao desequipar item.';
+        this.showToast(errorMsg, 'error');
+      }
+    });
+  }
+
+  confirmSubstituteArmadura(): void {
+    if (this.pendingEquipId === null) return;
+    
+    const pe = this.character?.equipamentos?.find(x => x.id === this.pendingEquipId);
+    if (pe) {
+      this.equipar(pe, true);
+    }
+    this.confirmArmaduraModalOpen = false;
+    this.pendingEquipId = null;
+    this.updateBodyScroll();
+  }
+
+  cancelSubstituteArmadura(): void {
+    this.confirmArmaduraModalOpen = false;
+    this.pendingEquipId = null;
+    this.updateBodyScroll();
+  }
+
+  updateBodyScroll(): void {
+    const isModalOpen = !!(
+      this.selectedTrait ||
+      this.selectedAction ||
+      this.selectedSpell ||
+      this.selectedEquipamento ||
+      this.confirmArmaduraModalOpen
+    );
+    if (isModalOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
     }
   }
 }

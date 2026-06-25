@@ -124,6 +124,31 @@ export interface MagiaInfo {
   descricao: string;
 }
 
+export interface EquipamentoInfo {
+  id: number;
+  nome: string;
+  descricao?: string;
+  peso?: number;
+  proficienciaRequerida?: string;
+  tipoEquipamento: string; // Arma, Armadura, Escudo, Outro
+  propriedades: string[];
+  dano?: string;
+  tipoDano?: string;
+  modificadorClasseArmadura?: number;
+  classeArmadura?: number;
+  permiteDestreza?: boolean;
+  forcaRequerida?: number;
+  desvantagemFurtividade?: boolean;
+  preco?: string;
+}
+
+export interface PersonagemEquipamentoInfo {
+  id: number;
+  idEquipamento: number;
+  isEquipado: boolean;
+  equipamento: EquipamentoInfo;
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -137,17 +162,17 @@ export interface Character {
   // 2 Subcards
   race: string;
   classAndSubclass: string;
-
+ 
   // Chapters list from Database
   chapters?: Chapter[];
-
+ 
   // Classes detailed info
   classes?: ClasseInfo[];
-
+ 
   // Race detailed info
   racaInfo?: RacaInfo;
   tracosRaciais?: TracoRacialInfo[];
-
+ 
   // Pericias calculadas vindo da API
   pericias?: PericiaCalculada[];
   acoes?: AcaoInfo[];
@@ -155,6 +180,12 @@ export interface Character {
   proficiencias?: ProficienciaGeralInfo[];
   idiomas?: string[];
   magias?: MagiaInfo[];
+  equipamentos?: PersonagemEquipamentoInfo[];
+  pecaCobre?: number;
+  pecaPrata?: number;
+  pecaElectro?: number;
+  pecaOuro?: number;
+  pecaPlatina?: number;
 }
 
 @Injectable({
@@ -258,7 +289,7 @@ export class CharacterService {
           avatarUrl: item.base64Imagem ? `data:image/png;base64,${item.base64Imagem}` : 'assets/images/placeholder.png',
           race: item.raca,
           classAndSubclass: item.classAndSubclass,
-          history: '',
+          history: item.history,
           sheet: this.createEmptySheet(item.nivel, item.alinhamento, item),
           bonds: []
         };
@@ -351,10 +382,24 @@ export class CharacterService {
           acoes: item.acoes || [],
           proficiencias: item.proficiencias || [],
           idiomas: item.idiomas || [],
-          magias: item.magias || []
+          magias: item.magias || [],
+          equipamentos: item.equipamentos || [],
+          pecaCobre: item.pecaCobre,
+          pecaPrata: item.pecaPrata,
+          pecaElectro: item.pecaElectro,
+          pecaOuro: item.pecaOuro,
+          pecaPlatina: item.pecaPlatina
         };
       }),
       catchError(() => of(undefined))
     );
+  }
+
+  equiparEquipamento(charCodigo: string, id: number, confirm: boolean = false): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/personagens/${charCodigo}/equipamentos/${id}/equipar?confirm=${confirm}`, {});
+  }
+
+  desequiparEquipamento(charCodigo: string, id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/personagens/${charCodigo}/equipamentos/${id}/desequipar`, {});
   }
 }

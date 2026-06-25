@@ -1210,3 +1210,361 @@
   border-radius: 4px;
   font-size: 0.9rem;
 }
+
+/* Equipamentos & Inventário Section */
+.equipamentos-card {
+  background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.equipamentos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.equipamento-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(24, 24, 28, 0.6);
+  border: 1px solid rgba(255, 170, 0, 0.08);
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.equipamento-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background 0.25s ease;
+}
+
+.equipamento-row.equipado-item {
+  border-color: rgba(255, 170, 0, 0.25);
+  background: rgba(255, 170, 0, 0.04);
+}
+
+.equipamento-row.equipado-item::before {
+  background: var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary);
+}
+
+.equipamento-row:hover {
+  border-color: rgba(255, 170, 0, 0.2);
+  background: rgba(24, 24, 28, 0.9);
+}
+
+.equipamento-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  cursor: pointer;
+}
+
+.equipamento-icon {
+  font-size: 1.3rem;
+  width: 36px;
+  height: 36px;
+  background: #111113;
+  border: 1px solid rgba(255, 170, 0, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+  transition: transform 0.2s ease;
+}
+
+.equipamento-info:hover .equipamento-icon {
+  transform: scale(1.08);
+  border-color: var(--color-primary);
+}
+
+.equipamento-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.equipamento-name {
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.equipamento-sub {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.equip-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 170, 0, 0.4);
+  color: var(--color-primary);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.equip-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(255, 170, 0, 0.3);
+}
+
+.equip-btn.is-equipped {
+  background: rgba(255, 77, 77, 0.08);
+  border-color: #ff4d4d;
+  color: #ff4d4d;
+}
+
+.equip-btn.is-equipped:hover {
+  background: #ff4d4d;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(255, 77, 77, 0.3);
+}
+
+.no-equipable-badge {
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--color-text-muted);
+  padding: 3px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.no-items-msg {
+  padding: 20px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Modal e Tags de Equipamentos */
+.equipamento-modal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.equipamento-stat-badge {
+  background: rgba(255, 170, 0, 0.04);
+  border: 1px solid rgba(255, 170, 0, 0.12);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+}
+
+.propriedade-tag {
+  background: rgba(255, 170, 0, 0.08);
+  border: 1px solid rgba(255, 170, 0, 0.25);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-right: 6px;
+  display: inline-block;
+}
+
+/* Botões do modal de confirmação */
+.cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-text-muted);
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.cancel-btn:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.confirm-btn {
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 10px rgba(255, 170, 0, 0.2);
+}
+
+.confirm-btn:hover {
+  background: #ffbc33;
+  border-color: #ffbc33;
+  box-shadow: 0 4px 15px rgba(255, 170, 0, 0.4);
+}
+
+/* Medieval Custom Toast */
+.medieval-toast-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: linear-gradient(135deg, #1c1c22 0%, #121215 100%);
+  border: 1px solid rgba(255, 170, 0, 0.3);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 15px rgba(255,170,0,0.15);
+  padding: 16px 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1100;
+  max-width: 400px;
+  animation: slideInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.medieval-toast-container.toast-error {
+  border-color: rgba(255, 77, 77, 0.45);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 15px rgba(255,77,77,0.15);
+}
+
+.medieval-toast-container.toast-success {
+  border-color: rgba(46, 204, 113, 0.45);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.8), 0 0 15px rgba(46,204,113,0.15);
+}
+
+.toast-icon {
+  font-size: 1.3rem;
+}
+
+.toast-text {
+  color: #fff;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.medieval-coins-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: rgba(20, 20, 24, 0.7);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 170, 0, 0.12);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 480px) {
+  .medieval-coins-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+}
+
+.coin-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.coin-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+.coin-label {
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.coin-value {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.copper-coin {
+  background: linear-gradient(135deg, #3d1f05 0%, #61330b 100%);
+  border-color: rgba(184, 115, 51, 0.3);
+  .coin-label { color: #d18a4a; }
+  &:hover { border-color: rgba(184, 115, 51, 0.6); box-shadow: 0 0 10px rgba(184, 115, 51, 0.2); }
+}
+
+.silver-coin {
+  background: linear-gradient(135deg, #2a2c33 0%, #434752 100%);
+  border-color: rgba(192, 192, 192, 0.3);
+  .coin-label { color: #b8bcbf; }
+  &:hover { border-color: rgba(192, 192, 192, 0.6); box-shadow: 0 0 10px rgba(192, 192, 192, 0.2); }
+}
+
+.electrum-coin {
+  background: linear-gradient(135deg, #242a2d 0%, #3a444a 100%);
+  border-color: rgba(133, 175, 191, 0.3);
+  .coin-label { color: #8cb4c4; }
+  &:hover { border-color: rgba(133, 175, 191, 0.6); box-shadow: 0 0 10px rgba(133, 175, 191, 0.2); }
+}
+
+.gold-coin {
+  background: linear-gradient(135deg, #3d3105 0%, #614f0b 100%);
+  border-color: rgba(255, 215, 0, 0.3);
+  .coin-label { color: #ffd700; }
+  .coin-value { text-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+  &:hover { border-color: rgba(255, 215, 0, 0.6); box-shadow: 0 0 12px rgba(255, 215, 0, 0.35); }
+}
+
+.platinum-coin {
+  background: linear-gradient(135deg, #2d3033 0%, #4a4e52 100%);
+  border-color: rgba(229, 228, 226, 0.3);
+  .coin-label { color: #e5e4e2; }
+  &:hover { border-color: rgba(229, 228, 226, 0.6); box-shadow: 0 0 10px rgba(229, 228, 226, 0.2); }
+}
+
+.equipamento-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.equipamento-price-badge {
+  font-size: 0.75rem;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-shadow: 0 0 4px rgba(255, 215, 0, 0.25);
+}
