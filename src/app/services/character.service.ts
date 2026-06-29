@@ -406,4 +406,38 @@ export class CharacterService {
   desequiparEquipamento(charCodigo: string, id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/personagens/${charCodigo}/equipamentos/${id}/desequipar`, {});
   }
+
+  getRacas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/racas`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  getClasses(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/classes`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  getEquipamentos(): Observable<EquipamentoInfo[]> {
+    return this.http.get<EquipamentoInfo[]>(`${this.apiUrl}/equipamentos`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  checkNameExists(nome: string): Observable<{ exists: boolean }> {
+    return this.http.get<{ exists: boolean }>(`${this.apiUrl}/personagens/check-nome?nome=${encodeURIComponent(nome)}`).pipe(
+      catchError(() => of({ exists: false }))
+    );
+  }
+
+  getMagias(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/magias`).pipe(
+      catchError(() => of([]))
+    );
+  }
+
+  createCharacter(dto: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/personagens`, dto);
+  }
 }

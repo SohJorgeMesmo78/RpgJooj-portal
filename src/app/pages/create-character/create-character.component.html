@@ -1,0 +1,853 @@
+<div class="create-container animate-fade-in">
+  <div class="navigation-header">
+    <a [routerLink]="['/']" class="back-link">
+      <span class="arrow">➔</span> Voltar à Taverna
+    </a>
+    <div class="sheet-title-badge font-medieval">FORJAR NOVO HERÓI</div>
+  </div>
+
+  <!-- Wizard Steps Indicator -->
+  <div class="wizard-stepper medieval-border">
+    <div class="step-indicator" [class.active]="currentStep === 1" [class.completed]="currentStep > 1">
+      <span class="step-num font-medieval">1</span>
+      <span class="step-label">Identidade</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-indicator" [class.active]="currentStep === 2" [class.completed]="currentStep > 2">
+      <span class="step-num font-medieval">2</span>
+      <span class="step-label">Raça</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-indicator" [class.active]="currentStep === 3" [class.completed]="currentStep > 3">
+      <span class="step-num font-medieval">3</span>
+      <span class="step-label">Classe</span>
+    </div>
+    
+    <ng-container *ngIf="hasSpells()">
+      <div class="step-connector"></div>
+      <div class="step-indicator" [class.active]="currentStep === 4" [class.completed]="currentStep > 4">
+        <span class="step-num font-medieval">4</span>
+        <span class="step-label">Magias</span>
+      </div>
+    </ng-container>
+
+    <div class="step-connector"></div>
+    <div class="step-indicator" [class.active]="currentStep === 5" [class.completed]="currentStep > 5">
+      <span class="step-num font-medieval">{{ hasSpells() ? 5 : 4 }}</span>
+      <span class="step-label">Atributos</span>
+    </div>
+  </div>
+
+  <form (submit)="onSubmit(); $event.preventDefault();" class="create-form-parchment medieval-border">
+    
+    <!-- PASSO 1: IDENTIDADE -->
+    <div *ngIf="currentStep === 1" class="step-content animate-fade-in">
+      <header class="form-header">
+        <h1 class="font-medieval">Passo 1: Identidade do Aventureiro</h1>
+        <p class="subtitle">Insira o nome, retrato e a essência inicial da lenda</p>
+        <div class="header-divider"></div>
+      </header>
+
+      <div class="form-grid">
+        <div class="form-column">
+          <div class="form-group">
+            <label class="required-field">Nome do Personagem</label>
+            <input 
+              type="text" 
+              [(ngModel)]="nome" 
+              name="nome" 
+              (ngModelChange)="onNomeChange()" 
+              placeholder="Ex: Gandalf, o Cinzento" 
+              required
+              class="medieval-input"
+            />
+          </div>
+
+
+
+          <div class="form-group">
+            <label>Alinhamento (Tendência)</label>
+            <select [(ngModel)]="alinhamento" name="alinhamento" class="medieval-select">
+              <option *ngFor="let align of alinhamentosList" [value]="align">{{ align }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-column">
+          <div class="form-group">
+            <label>Retrato do Herói</label>
+            <div class="avatar-creation-wrapper">
+              <div class="avatar-frame">
+                <img 
+                  [src]="base64Imagem ? 'data:image/png;base64,' + base64Imagem : 'assets/images/placeholder.png'" 
+                  alt="Avatar Preview" 
+                  class="character-avatar-preview" 
+                />
+              </div>
+              <div class="avatar-upload-controls">
+                <label for="avatar-file-input" class="action-roll-btn font-medieval" style="cursor: pointer; text-align: center; display: inline-block;">
+                  Carregar Imagem 📂
+                </label>
+                <input 
+                  id="avatar-file-input" 
+                  type="file" 
+                  accept="image/*" 
+                  (change)="onFileSelected($event)" 
+                  style="display: none;" 
+                />
+                <span class="field-hint">Carregue um arquivo de imagem para ilustrar sua ficha.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSO 2: SELEÇÃO DE RAÇA -->
+    <div *ngIf="currentStep === 2" class="step-content animate-fade-in">
+      <header class="form-header">
+        <h1 class="font-medieval">Passo 2: Escolha a Raça</h1>
+        <p class="subtitle">Selecione uma raça disponível no reino para o seu personagem</p>
+        <div class="header-divider"></div>
+      </header>
+
+      <!-- Grid de Cards de Raças -->
+      <div class="cards-grid">
+        <div 
+          *ngFor="let r of racasList" 
+          (click)="selectRace(r)"
+          class="selection-card" 
+          [class.selected-card]="selectedRaceObj?.nome === r.nome"
+        >
+          <div class="card-img-frame">
+            <img [src]="'assets/images/races/' + r.nome.toLowerCase() + '.png'" alt="Raca" onerror="this.src='assets/images/placeholder.png'" class="card-avatar" />
+          </div>
+          <div class="card-title font-medieval">{{ r.nome }}</div>
+          <p class="card-preview-desc">{{ r.descricao | slice:0:80 }}...</p>
+          <div class="card-footer-select">Ver Detalhes & Selecionar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSO 3: SELEÇÃO DE CLASSE -->
+    <div *ngIf="currentStep === 3" class="step-content animate-fade-in">
+      <header class="form-header">
+        <h1 class="font-medieval">Passo 3: Escolha a Classe</h1>
+        <p class="subtitle">Escolha uma vocação arcana ou marcial e defina suas escolhas nível a nível</p>
+        <div class="header-divider"></div>
+      </header>
+
+      <!-- Grid de Cards de Classes -->
+      <div class="cards-grid">
+        <div 
+          *ngFor="let c of classesList" 
+          (click)="selectClass(c)"
+          class="selection-card" 
+          [class.selected-card]="selectedClassObj?.nome === c.nome"
+        >
+          <div class="card-img-frame">
+            <img [src]="'assets/images/classes/' + c.nome.toLowerCase() + '.png'" alt="Classe" onerror="this.src='assets/images/placeholder.png'" class="card-avatar" />
+          </div>
+          <div class="card-title font-medieval">{{ c.nome }}</div>
+          <p class="card-preview-desc">Dado de Vida: {{ c.dadoVida }}</p>
+          <div class="card-footer-select">Ver Níveis & Selecionar</div>
+        </div>
+
+      </div>
+
+      <!-- Nível e Configurações da Classe Selecionada -->
+      <div *ngIf="selectedClassObj" class="class-config-wrapper animate-fade-in" style="margin-top: 30px; display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Configuração de Nível -->
+        <div class="custom-entry-box medieval-border" style="padding: 15px 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+            <h3 class="font-medieval text-gold" style="margin: 0; border: none; padding: 0;">✨ Configuração de Nível</h3>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="font-medieval text-gold" style="font-size: 0.95rem;">Nível da Classe:</span>
+              <select [(ngModel)]="nivel" name="nivel" class="medieval-select" style="width: 80px; padding: 6px 12px; font-size: 1rem;">
+                <option *ngFor="let lvl of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" [value]="lvl">{{ lvl }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Características Base do Bruxo -->
+        <div *ngIf="selectedClassObj?.nome?.toLowerCase() === 'bruxo'" class="custom-entry-box medieval-border animate-fade-in" style="padding: 20px;">
+          <h3 class="font-medieval text-gold" style="border-bottom: 1px solid rgba(255, 170, 0, 0.2); padding-bottom: 8px; margin-bottom: 15px;">
+            📜 Informações Iniciais da Classe: Bruxo
+          </h3>
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+              <h4 class="font-medieval text-gold" style="margin: 0 0 5px 0; font-size: 0.95rem;">❤️ PONTOS DE VIDA</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                <li><strong>Dado de Vida:</strong> 1d8 por nível de bruxo</li>
+                <li><strong>Pontos de Vida no 1° Nível:</strong> 8 + seu modificador de Constituição</li>
+                <li><strong>Pontos de Vida nos Níveis Seguintes:</strong> 1d8 (ou 5) + seu modificador de Constituição por nível de bruxo após o 1°</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-medieval text-gold" style="margin: 0 0 5px 0; font-size: 0.95rem;">🛡️ PROFICIÊNCIAS</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                <li><strong>Armaduras:</strong> Armaduras leves</li>
+                <li><strong>Armas:</strong> Armas simples</li>
+                <li><strong>Ferramentas:</strong> Nenhuma</li>
+                <li><strong>Testes de Resistência:</strong> Sabedoria, Carisma</li>
+                <li><strong>Perícias:</strong> Escolha duas dentre Arcanismo, Enganação, História, Intimidação, Investigação, Natureza e Religião</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-medieval text-gold" style="margin: 0 0 5px 0; font-size: 0.95rem;">🎒 EQUIPAMENTO INICIAL</h4>
+              <p style="margin: 0; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                Você começa com o seguinte equipamento, além do equipamento concedido pelo seu antecedente:
+              </p>
+              <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                <li>(a) uma besta leve e 20 virotes <strong>ou</strong> (b) qualquer arma simples</li>
+                <li>(a) uma bolsa de componentes <strong>ou</strong> (b) um foco arcano</li>
+                <li>(a) um pacote de estudioso <strong>ou</strong> (b) um pacote de explorador</li>
+                <li>Armadura de couro, qualquer arma simples e duas adagas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Características Base do Monge -->
+        <div *ngIf="selectedClassObj?.nome?.toLowerCase() === 'monge'" class="custom-entry-box medieval-border animate-fade-in" style="padding: 20px;">
+          <h3 class="font-medieval text-gold" style="border-bottom: 1px solid rgba(255, 170, 0, 0.2); padding-bottom: 8px; margin-bottom: 15px;">
+            📜 Informações Iniciais da Classe: Monge
+          </h3>
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+              <h4 class="font-medieval text-gold" style="margin: 0 0 5px 0; font-size: 0.95rem;">❤️ PONTOS DE VIDA</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                <li><strong>Dado de Vida:</strong> 1d8 por nível de monge</li>
+                <li><strong>Pontos de Vida no 1° Nível:</strong> 8 + seu modificador de Constituição</li>
+                <li><strong>Pontos de Vida nos Níveis Seguintes:</strong> 1d8 (ou 5) + seu modificador de Constituição por nível de monge após o 1°</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-medieval text-gold" style="margin: 0 0 5px 0; font-size: 0.95rem;">🛡️ PROFICIÊNCIAS</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                <li><strong>Armaduras:</strong> Nenhuma</li>
+                <li><strong>Armas:</strong> Armas simples, espadas curtas</li>
+                <li><strong>Ferramentas:</strong> Escolha um tipo de ferramenta de artesão ou um instrumento musical</li>
+                <li><strong>Testes de Resistência:</strong> Força, Destreza</li>
+                <li><strong>Perícias:</strong> Escolha duas dentre Acrobacia, Atletismo, Furtividade, História, Intuição e Religião</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-medieval text-gold" style="margin: 0 0 5px 0; font-size: 0.95rem;">🎒 EQUIPAMENTO INICIAL</h4>
+              <p style="margin: 0; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                Você começa com o seguinte equipamento, além do equipamento concedido pelo seu antecedente:
+              </p>
+              <ul style="margin: 5px 0 0 0; padding-left: 20px; font-size: 0.88rem; color: #dedede; line-height: 1.4;">
+                <li>(a) uma espada curta <strong>ou</strong> (b) qualquer arma simples</li>
+                <li>(a) um pacote de explorador <strong>ou</strong> (b) um pacote de aventureiro</li>
+                <li>10 dardos</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuração Nível a Nível se classe do Banco for selecionada -->
+        <div *ngIf="selectedClassObj" class="level-config-timeline medieval-border animate-fade-in" style="margin-top: 0;">
+          <h3 class="font-medieval text-gold">Configuração de Progressão: {{ selectedClassObj.nome }}</h3>
+          <p class="subtitle" style="margin-bottom: 20px;">Seu aventureiro começará no nível {{ nivel }}. Veja as habilidades que você ganha em cada nível:</p>
+
+        <div class="timeline-container">
+          <div *ngFor="let lvl of levelsArray" class="level-node-panel text-gold">
+            
+            <!-- Divisor/Cabeçalho de Nível -->
+            <div (click)="toggleLevelExpand(lvl)" class="level-node-header font-medieval" style="cursor: pointer;">
+              <span class="level-circle">{{ lvl }}</span>
+              <span class="level-text">NÍVEL {{ lvl }}</span>
+              <span class="level-toggle-arrow">{{ expandedLevels[lvl] ? '▲' : '▼' }}</span>
+            </div>
+
+            <!-- Detalhes do Nível (Expansível) -->
+            <div *ngIf="expandedLevels[lvl]" class="level-node-content animate-fade-in">
+              
+              <!-- Características Básicas do Nível -->
+              <div *ngIf="getLevelFeatures(lvl).length > 0; else noFeatures">
+                <div *ngFor="let feat of getLevelFeatures(lvl)" class="feat-detail-card">
+                  <h4 class="feat-name font-medieval text-gold">⚔️ {{ feat.nome }}</h4>
+                  <p class="feat-desc text-white-glow">{{ feat.descricao }}</p>
+                </div>
+              </div>
+              <ng-template #noFeatures>
+                <p class="no-feats-text">Nenhuma característica básica neste nível.</p>
+              </ng-template>
+
+              <!-- Decisões Especiais (Seleção de Subclasse no nível correto) -->
+              <div class="special-decision-box medieval-border" *ngIf="lvl === getSubclassLevel(selectedClassObj) && selectedClassObj.subclasses.length > 0">
+                <h4 class="font-medieval text-gold">✨ Decisão de Subclasse (Escolha um Caminho)</h4>
+                <div class="form-group" style="margin-top: 10px;">
+                  <label class="required-field">Escolha seu Patrono ou Arquétipo</label>
+                  <select [ngModel]="selectedSubclassObj?.nome" (change)="onSubclassChange($event)" name="subclass-select" class="medieval-select">
+                    <option value="">-- Selecione uma opção --</option>
+                    <option *ngFor="let sub of selectedClassObj.subclasses" [value]="sub.nome">{{ sub.nome }}</option>
+                  </select>
+                </div>
+
+                <!-- Escolhas específicas da subclasse de Gênio (ex: Djinni) -->
+                <div class="form-group animate-fade-in" style="margin-top: 12px;" *ngIf="selectedSubclassObj && (selectedSubclassObj.nome.toLowerCase() === 'o genio' || selectedSubclassObj.nome.toLowerCase() === 'o gênio')">
+                  <label class="required-field">Elemento/Tipo de Gênio Patrono</label>
+                  <select [(ngModel)]="subclasseEscolha" name="subclasseEscolha" class="medieval-select">
+                    <option value="">-- Selecione o Gênio --</option>
+                    <option *ngFor="let choice of genioChoices" [value]="choice">{{ choice }}</option>
+                  </select>
+                  <span class="field-hint">Kairo utiliza o Djinni. Selecione a sua preferência.</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- SELEÇÃO DE PERÍCIAS DA CLASSE -->
+        <div *ngIf="selectedClassObj" class="custom-entry-box medieval-border animate-fade-in" style="padding: 20px;">
+          <h3 class="font-medieval text-gold" style="border-bottom: 1px solid rgba(255, 170, 0, 0.2); padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+            🎯 Perícias da Classe (Escolha exatamente {{ selectedClassObj.qtdPericiasEscolha }})
+          </h3>
+          <p class="subtitle" style="margin-bottom: 15px; font-size: 0.9rem;">
+            Selecione as perícias nas quais você possui treinamento especial concedido por ser um {{ selectedClassObj.nome }}:
+          </p>
+          <div class="skills-grid-selection">
+            <div 
+              *ngFor="let per of selectedClassObj.periciasDisponiveis"
+              class="skill-select-chip"
+              [class.selected]="isPericiaSelected(per.id)"
+              (click)="togglePericia(per.id)"
+            >
+              <span class="skill-checkbox-indicator"></span>
+              <span class="skill-name-label font-medieval">{{ per.nome }}</span>
+              <span class="skill-attr-badge">({{ per.modificadorAtributo }})</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- EQUIPAMENTO INICIAL DE BRUXO -->
+        <div *ngIf="selectedClassObj?.nome?.toLowerCase() === 'bruxo'" class="custom-entry-box medieval-border animate-fade-in" style="padding: 20px;">
+          <h3 class="font-medieval text-gold" style="border-bottom: 1px solid rgba(255, 170, 0, 0.2); padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+            🎒 Equipamentos Iniciais de Bruxo
+          </h3>
+          
+          <div class="equipment-choices-container">
+            <!-- Grupo 1: Arma Inicial -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">1. Escolha de Ataque à Distância ou Corpo a Corpo</h4>
+              <div class="radio-choices">
+                <label class="radio-option">
+                  <input type="radio" name="warlockGroup1" value="a" [(ngModel)]="warlockGroup1">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Besta Leve e 20 virotes</span>
+                    <span class="option-desc">Excelente para ataques de precisão à distância (dano 1d8 perfurante).</span>
+                  </div>
+                </label>
+                
+                <label class="radio-option">
+                  <input type="radio" name="warlockGroup1" value="simple" [(ngModel)]="warlockGroup1">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Qualquer Arma Simples</span>
+                    <span class="option-desc">Escolha uma arma simples da sua preferência:</span>
+                    <select [(ngModel)]="warlockGroup1Simple" name="warlockGroup1Simple" class="medieval-select option-sub-select" [disabled]="warlockGroup1 !== 'simple'">
+                      <option *ngFor="let eq of getSimpleWeapons()" [value]="eq.id">{{ eq.nome }} ({{ eq.dano }} - {{ eq.tipoDano }})</option>
+                    </select>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Grupo 2: Foco Arcano ou Bolsa -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">2. Catalisador de Magia</h4>
+              <div class="radio-choices">
+                <label class="radio-option">
+                  <input type="radio" name="warlockGroup2" value="a" [(ngModel)]="warlockGroup2">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Bolsa de Componentes</span>
+                    <span class="option-desc">Uma bolsa de couro prática com ingredientes para conjuração.</span>
+                  </div>
+                </label>
+                
+                <label class="radio-option">
+                  <input type="radio" name="warlockGroup2" value="b" [(ngModel)]="warlockGroup2">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Foco Arcano</span>
+                    <span class="option-desc">Um cajado, cristal ou varinha para focalizar suas forças.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Grupo 3: Pacote de Aventura -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">3. Pacote de Suprimentos</h4>
+              <div class="radio-choices">
+                <label class="radio-option">
+                  <input type="radio" name="warlockGroup3" value="a" [(ngModel)]="warlockGroup3">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Pacote de Estudioso</span>
+                    <span class="option-desc">Mochila com livros, tinteiro, penas e pergaminhos para estudos.</span>
+                  </div>
+                </label>
+                
+                <label class="radio-option">
+                  <input type="radio" name="warlockGroup3" value="b" [(ngModel)]="warlockGroup3">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Pacote de Explorador</span>
+                    <span class="option-desc">Saco de dormir, rações, cantil, tochas e pederneiras para viagem.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Escolha Adicional Simples (Fixo + 1 arma simples) -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">4. Arma Simples Adicional</h4>
+              <p class="group-info-text">Além do grupo acima, você também recebe a Armadura de Couro e duas adagas. Escolha mais uma arma simples:</p>
+              <select [(ngModel)]="warlockFixedSimple" name="warlockFixedSimple" class="medieval-select" style="max-width: 300px; margin-top: 10px;">
+                <option *ngFor="let eq of getSimpleWeapons()" [value]="eq.id">{{ eq.nome }} ({{ eq.dano }} - {{ eq.tipoDano }})</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- EQUIPAMENTO INICIAL DE MONGE -->
+        <div *ngIf="selectedClassObj?.nome?.toLowerCase() === 'monge'" class="custom-entry-box medieval-border animate-fade-in" style="padding: 20px;">
+          <h3 class="font-medieval text-gold" style="border-bottom: 1px solid rgba(255, 170, 0, 0.2); padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+            🎒 Equipamentos Iniciais de Monge
+          </h3>
+          
+          <div class="equipment-choices-container">
+            <!-- Grupo 1: Espada Curta ou Arma Simples -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">1. Escolha de Arma de Assinatura</h4>
+              <div class="radio-choices">
+                <label class="radio-option">
+                  <input type="radio" name="monkGroup1" value="a" [(ngModel)]="monkGroup1">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Espada Curta</span>
+                    <span class="option-desc">Uma lâmina leve e equilibrada (dano 1d6 perfurante).</span>
+                  </div>
+                </label>
+                
+                <label class="radio-option">
+                  <input type="radio" name="monkGroup1" value="simple" [(ngModel)]="monkGroup1">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Qualquer Arma Simples</span>
+                    <span class="option-desc">Escolha uma arma simples da sua preferência:</span>
+                    <select [(ngModel)]="monkGroup1Simple" name="monkGroup1Simple" class="medieval-select option-sub-select" [disabled]="monkGroup1 !== 'simple'">
+                      <option *ngFor="let eq of getSimpleWeapons()" [value]="eq.id">{{ eq.nome }} ({{ eq.dano }} - {{ eq.tipoDano }})</option>
+                    </select>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Grupo 2: Pacotes de Suprimentos -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">2. Pacote de Suprimentos</h4>
+              <div class="radio-choices">
+                <label class="radio-option">
+                  <input type="radio" name="monkGroup2" value="a" [(ngModel)]="monkGroup2">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Pacote de Explorador</span>
+                    <span class="option-desc">Ideal para desbravar áreas selvagens (saco de dormir, tochas, rações).</span>
+                  </div>
+                </label>
+                
+                <label class="radio-option">
+                  <input type="radio" name="monkGroup2" value="b" [(ngModel)]="monkGroup2">
+                  <span class="radio-checkmark"></span>
+                  <div class="option-details">
+                    <span class="option-title">Pacote de Aventureiro</span>
+                    <span class="option-desc">Ideal para exploração geral (pé de cabra, martelo, tochas, 15m de corda).</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Fixo: 10 Dardos -->
+            <div class="equipment-choice-group">
+              <h4 class="font-medieval text-gold">3. Projéteis Fixos</h4>
+              <p class="group-info-text">Você também começará com **10 Dardos** para ataques de arremesso à distância.</p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+    <!-- PASSO 4: SELEÇÃO DE MAGIAS E TRUQUES -->
+    <div *ngIf="currentStep === 4" class="step-content animate-fade-in">
+      <header class="form-header">
+        <h1 class="font-medieval">Passo 4: Escolha de Magias & Truques</h1>
+        <p class="subtitle">Desperte o poder arcano da sua classe</p>
+        <div class="header-divider"></div>
+      </header>
+
+      <div class="spells-limits-banner font-medieval">
+        <span>Sua progressão exige exatamente: </span>
+        <span class="badge truques-badge">{{ currentProgression?.truquesConhecidos || 0 }} Truques</span>
+        <span> e </span>
+        <span class="badge magias-badge">{{ currentProgression?.magiasConhecidas || 0 }} Magias (Nível máximo: {{ currentProgression?.nivelMagia || 0 }})</span>
+      </div>
+
+      <div class="form-grid">
+        <!-- Coluna de Truques (Nível 0) -->
+        <div class="form-column">
+          <section class="form-section">
+            <h2 class="section-title font-medieval">Truques (Nível 0)</h2>
+            <p class="section-info">Selecione exatamente {{ currentProgression?.truquesConhecidos || 0 }}:</p>
+            <div class="spells-select-grid">
+              <div 
+                *ngFor="let spell of getFilteredSpells(0)" 
+                class="spell-select-card"
+                [class.selected]="isTruqueSelected(spell.id)"
+                (click)="toggleTruque(spell.id)"
+              >
+                <div class="spell-header">
+                  <span class="spell-name font-medieval">{{ spell.nome }}</span>
+                  <span class="spell-level-badge">Nível {{ spell.nivel }}</span>
+                </div>
+                <p class="spell-desc">{{ spell.descricao }}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Coluna de Magias (Nível >= 1) -->
+        <div class="form-column">
+          <section class="form-section">
+            <h2 class="section-title font-medieval">Magias Conhecidas</h2>
+            <p class="section-info">Selecione exatamente {{ currentProgression?.magiasConhecidas || 0 }}:</p>
+            <div class="spells-select-grid">
+              <div 
+                *ngFor="let spell of getFilteredSpells(1)" 
+                class="spell-select-card"
+                [class.selected]="isMagiaSelected(spell.id)"
+                (click)="toggleMagia(spell.id)"
+              >
+                <div class="spell-header">
+                  <span class="spell-name font-medieval">{{ spell.nome }}</span>
+                  <span class="spell-level-badge">Nível {{ spell.nivel }}</span>
+                </div>
+                <p class="spell-desc">{{ spell.descricao }}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSO 5: ATRIBUTOS E VITALIDADE -->
+    <div *ngIf="currentStep === 5" class="step-content animate-fade-in">
+      <header class="form-header">
+        <h1 class="font-medieval">Passo {{ hasSpells() ? 5 : 4 }}: Atributos & Vitalidade</h1>
+        <p class="subtitle">Determine a força física, mental e os pontos de vida da lenda</p>
+        <div class="header-divider"></div>
+      </header>
+
+      <div class="form-grid">
+        <div class="form-column">
+          <section class="form-section">
+            <h2 class="section-title font-medieval">Geração de Atributos</h2>
+            
+            <div class="attribute-generation-actions">
+              <button 
+                type="button" 
+                (click)="applyStandardArray()" 
+                class="action-roll-btn font-medieval"
+                [class.active-mode]="attributesGenerationMode === 'array'"
+              >
+                Standard Array 📊
+              </button>
+              <button 
+                type="button" 
+                (click)="rollAllAttributes()" 
+                class="action-roll-btn roll-dice-btn font-medieval"
+                [class.active-mode]="attributesGenerationMode === 'roll'"
+              >
+                Rolar 4d6 (D&D) 🎲
+              </button>
+              <button 
+                type="button" 
+                (click)="changeGenerationMode('manual')" 
+                class="action-roll-btn manual-mode-btn font-medieval"
+                [class.active-mode]="attributesGenerationMode === 'manual'"
+              >
+                Digitar Manualmente ✍️
+              </button>
+            </div>
+
+            <!-- Valores Gerados (Feedback Visual & Draggable) -->
+            <div class="rolled-values-box font-medieval animate-fade-in" *ngIf="rolledValues.length > 0 && attributesGenerationMode !== 'manual'">
+              <span class="rolled-title">Valores Disponíveis (Arraste para os slots abaixo):</span>
+              <div class="rolled-chips">
+                <span 
+                  *ngFor="let val of rolledValues; let idx = index" 
+                  class="rolled-chip draggable-chip"
+                  draggable="true"
+                  (dragstart)="onDragStart($event, val, idx)"
+                >
+                  {{ val }}
+                </span>
+              </div>
+            </div>
+
+            <div class="attributes-inputs-grid">
+              <div 
+                class="attr-input-box drop-zone" 
+                [class.drop-active]="draggedValue !== null"
+                [class.readonly-mode]="attributesGenerationMode !== 'manual'"
+                [class.filled]="attributes.strength > 0"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, 'strength')"
+              >
+                <span class="attr-lbl">FOR</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="attributes.strength" 
+                  name="strength" 
+                  [min]="attributesGenerationMode === 'manual' ? 3 : 0" 
+                  max="25" 
+                  [readonly]="attributesGenerationMode !== 'manual'"
+                  class="attr-num font-medieval" 
+                />
+                <span class="drag-hint" *ngIf="attributesGenerationMode !== 'manual' && attributes.strength === 0">Arraste</span>
+              </div>
+
+              <div 
+                class="attr-input-box drop-zone" 
+                [class.drop-active]="draggedValue !== null"
+                [class.readonly-mode]="attributesGenerationMode !== 'manual'"
+                [class.filled]="attributes.dexterity > 0"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, 'dexterity')"
+              >
+                <span class="attr-lbl">DES</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="attributes.dexterity" 
+                  name="dexterity" 
+                  [min]="attributesGenerationMode === 'manual' ? 3 : 0" 
+                  max="25" 
+                  [readonly]="attributesGenerationMode !== 'manual'"
+                  class="attr-num font-medieval" 
+                />
+                <span class="drag-hint" *ngIf="attributesGenerationMode !== 'manual' && attributes.dexterity === 0">Arraste</span>
+              </div>
+
+              <div 
+                class="attr-input-box drop-zone" 
+                [class.drop-active]="draggedValue !== null"
+                [class.readonly-mode]="attributesGenerationMode !== 'manual'"
+                [class.filled]="attributes.constitution > 0"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, 'constitution')"
+              >
+                <span class="attr-lbl">CON</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="attributes.constitution" 
+                  name="constitution" 
+                  [min]="attributesGenerationMode === 'manual' ? 3 : 0" 
+                  max="25" 
+                  [readonly]="attributesGenerationMode !== 'manual'"
+                  class="attr-num font-medieval" 
+                />
+                <span class="drag-hint" *ngIf="attributesGenerationMode !== 'manual' && attributes.constitution === 0">Arraste</span>
+              </div>
+
+              <div 
+                class="attr-input-box drop-zone" 
+                [class.drop-active]="draggedValue !== null"
+                [class.readonly-mode]="attributesGenerationMode !== 'manual'"
+                [class.filled]="attributes.intelligence > 0"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, 'intelligence')"
+              >
+                <span class="attr-lbl">INT</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="attributes.intelligence" 
+                  name="intelligence" 
+                  [min]="attributesGenerationMode === 'manual' ? 3 : 0" 
+                  max="25" 
+                  [readonly]="attributesGenerationMode !== 'manual'"
+                  class="attr-num font-medieval" 
+                />
+                <span class="drag-hint" *ngIf="attributesGenerationMode !== 'manual' && attributes.intelligence === 0">Arraste</span>
+              </div>
+
+              <div 
+                class="attr-input-box drop-zone" 
+                [class.drop-active]="draggedValue !== null"
+                [class.readonly-mode]="attributesGenerationMode !== 'manual'"
+                [class.filled]="attributes.wisdom > 0"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, 'wisdom')"
+              >
+                <span class="attr-lbl">SAB</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="attributes.wisdom" 
+                  name="wisdom" 
+                  [min]="attributesGenerationMode === 'manual' ? 3 : 0" 
+                  max="25" 
+                  [readonly]="attributesGenerationMode !== 'manual'"
+                  class="attr-num font-medieval" 
+                />
+                <span class="drag-hint" *ngIf="attributesGenerationMode !== 'manual' && attributes.wisdom === 0">Arraste</span>
+              </div>
+
+              <div 
+                class="attr-input-box drop-zone" 
+                [class.drop-active]="draggedValue !== null"
+                [class.readonly-mode]="attributesGenerationMode !== 'manual'"
+                [class.filled]="attributes.charisma > 0"
+                (dragover)="onDragOver($event)"
+                (drop)="onDrop($event, 'charisma')"
+              >
+                <span class="attr-lbl">CAR</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="attributes.charisma" 
+                  name="charisma" 
+                  [min]="attributesGenerationMode === 'manual' ? 3 : 0" 
+                  max="25" 
+                  [readonly]="attributesGenerationMode !== 'manual'"
+                  class="attr-num font-medieval" 
+                />
+                <span class="drag-hint" *ngIf="attributesGenerationMode !== 'manual' && attributes.charisma === 0">Arraste</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="form-column">
+          <section class="form-section">
+            <h2 class="section-title font-medieval">Vitalidade (Pontos de Vida)</h2>
+            
+            <div class="hp-calculation-box">
+              <div class="hp-header-calc">
+                <span class="hp-title font-medieval">Vida Máxima Estimada:</span>
+                <span class="hp-value font-medieval">{{ finalHp }} PV</span>
+              </div>
+              
+              <div class="checkbox-group" style="margin-top: 10px;">
+                <label class="checkbox-container">
+                  <input type="checkbox" [(ngModel)]="isCustomHp" name="isCustomHp">
+                  <span class="checkmark"></span>
+                  Personalizar Vida Máxima manualmente
+                </label>
+              </div>
+
+              <div class="form-group animate-fade-in" *ngIf="isCustomHp" style="margin-top: 12px;">
+                <label>Digite a Vida Máxima Personalizada</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="customHp" 
+                  name="customHp" 
+                  min="1" 
+                  class="medieval-input font-medieval" 
+                  style="max-width: 150px;" 
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navegação Inferior -->
+    <div class="form-footer-actions">
+      <button 
+        type="button" 
+        *ngIf="currentStep > 1" 
+        (click)="prevStep()" 
+        class="cancel-link font-medieval text-gold-btn"
+      >
+        ◀ Voltar
+      </button>
+      <div style="flex-grow: 1;"></div>
+      <button 
+        type="button" 
+        *ngIf="currentStep < 5" 
+        (click)="nextStep()" 
+        class="submit-create-btn font-medieval"
+      >
+        Avançar ▶
+      </button>
+      <button 
+        type="submit" 
+        *ngIf="currentStep === 5" 
+        class="submit-create-btn font-medieval"
+      >
+        Criar Lenda ⚔️
+      </button>
+    </div>
+
+  </form>
+
+  <!-- MODAL DE DETALHES DE RAÇA (Passo 2) -->
+  <div class="medieval-modal-overlay animate-fade-in" *ngIf="showRaceModal && modalRaceObj">
+    <div class="medieval-modal-wrapper medieval-border animate-scale-up">
+      <header class="modal-header">
+        <h2 class="font-medieval text-gold">{{ modalRaceObj.nome }}</h2>
+        <button type="button" class="close-modal-btn" (click)="showRaceModal = false">✖</button>
+      </header>
+      
+      <div class="modal-body-scroll">
+        <p class="race-main-desc">{{ modalRaceObj.descricao }}</p>
+        
+        <div class="race-metadata-grid">
+          <div class="meta-item">
+            <span class="lbl text-gold font-medieval">Tamanho:</span>
+            <span>{{ modalRaceObj.tamanho }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="lbl text-gold font-medieval">Deslocamento:</span>
+            <span>{{ modalRaceObj.deslocamento }}m</span>
+          </div>
+          <div class="meta-item" style="grid-column: span 2;">
+            <span class="lbl text-gold font-medieval">Tipo de Criatura:</span>
+            <span>{{ modalRaceObj.tipoCriatura }}</span>
+          </div>
+        </div>
+
+        <h3 class="font-medieval text-gold section-sub-title">Traços Raciais</h3>
+        <div class="traits-modal-list">
+          <div *ngFor="let t of modalRaceObj.tracosRaciais" class="trait-modal-card">
+            <h4 class="font-medieval text-gold">✨ {{ t.nome }}</h4>
+            <p>{{ t.descricao }}</p>
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer-actions">
+        <button type="button" (click)="showRaceModal = false" class="action-roll-btn font-medieval">Cancelar</button>
+        <button type="button" (click)="confirmRaceSelection()" class="submit-create-btn font-medieval">Confirmar Raça ✔</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Toast flutuante medieval para notificações -->
+  <div class="medieval-toast-container" *ngIf="toastMessage" [class.toast-error]="toastType === 'error'" [class.toast-success]="toastType === 'success'">
+    <span class="toast-icon">{{ toastType === 'error' ? '⚠️' : '✨' }}</span>
+    <span class="toast-text font-medieval">{{ toastMessage }}</span>
+  </div>
+</div>
